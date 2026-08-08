@@ -1,0 +1,6 @@
+---
+name: HPC Job Monitor
+category: Monitoring
+subcategory: Jobs
+description: Real-time Slurm job monitoring with notifications
+icon: fa://desktop

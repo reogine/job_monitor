@@ -1,0 +1,13 @@
+{
+  "name": "hpc-job-monitor",
+  "version": "1.0.0",
+  "description": "Real-time Slurm job monitoring for Open OnDemand",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "socket.io": "^4.8.3"
+  }
+}

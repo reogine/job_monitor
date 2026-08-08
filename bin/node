@@ -1,0 +1,5 @@
+#!/bin/bash
+# Load the Node.js module if available on the cluster
+# Uncomment and adjust the line below for your cluster:
+# module load nodejs/20
+exec /usr/bin/env node "$@"

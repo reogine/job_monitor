@@ -1,0 +1,91 @@
+const { exec } = require('child_process');
+
+// Active polling intervals: socketId -> intervalId
+const activePollers = new Map();
+// Previous job state per socket: socketId -> { jobId: jobObject }
+const previousJobs = new Map();
+
+const POLL_INTERVAL = 10000; // 10 seconds
+
+function parseSqueueOutput(output) {
+  const lines = output.trim().split('\n');
+  const jobs = {};
+
+  // Skip header line
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    const [id, name, user, state, time, timeLimit, nodeList] = line.split('|');
+    jobs[id] = { id, name, user, state, time, timeLimit, nodeList };
+  }
+
+  return jobs;
+}
+
+function pollOnce(username, socket) {
+  const cmd = `squeue -u ${username} -o "%i|%j|%u|%T|%M|%l|%R"`;
+
+  exec(cmd, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`squeue error for ${username}:`, error.message);
+      return;
+    }
+
+    const currentJobs = parseSqueueOutput(stdout);
+    const prevJobs = previousJobs.get(socket.id) || {};
+
+    // Detect state changes
+    for (const jobId in currentJobs) {
+      const curr = currentJobs[jobId];
+      const prev = prevJobs[jobId];
+
+      if (prev && prev.state !== curr.state && curr.state === 'RUNNING') {
+        socket.emit('job_started', {
+          jobId: curr.id,
+          job: curr
+        });
+      }
+    }
+
+    // Detect finished/disappeared jobs
+    for (const jobId in prevJobs) {
+      if (!currentJobs[jobId]) {
+        socket.emit('job_finished', {
+          jobId: prevJobs[jobId].id,
+          job: prevJobs[jobId]
+        });
+      }
+    }
+
+    // Update state and broadcast
+    previousJobs.set(socket.id, currentJobs);
+    socket.emit('jobs_update', Object.values(currentJobs));
+  });
+}
+
+function startPolling(username, socket) {
+  console.log(`Starting poller for ${username} (socket: ${socket.id})`);
+
+  // Immediate first poll
+  pollOnce(username, socket);
+
+  // Then poll on interval
+  const intervalId = setInterval(() => {
+    pollOnce(username, socket);
+  }, POLL_INTERVAL);
+
+  activePollers.set(socket.id, intervalId);
+}
+
+function stopPolling(socketId) {
+  const intervalId = activePollers.get(socketId);
+  if (intervalId) {
+    clearInterval(intervalId);
+    activePollers.delete(socketId);
+    previousJobs.delete(socketId);
+    console.log(`Stopped poller for socket: ${socketId}`);
+  }
+}
+
+module.exports = { startPolling, stopPolling };
