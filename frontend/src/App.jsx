@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Settings, Server, LogOut, RotateCw, ChevronRight, ChevronLeft, Layers, Monitor, Clock, Battery, Cpu, FileText } from 'lucide-react'
+import { Settings, Server, LogOut, RotateCw, ChevronRight, ChevronLeft, Layers, Monitor, Clock, Battery, Cpu, FileText, DownloadCloud } from 'lucide-react'
 import { io } from 'socket.io-client'
 import './App.css'
 
@@ -91,6 +91,27 @@ function App() {
     </>
   )
 
+  const handleAppUpdate = async () => {
+    if (!window.confirm("Check for updates and restart the app?")) return;
+    try {
+      setStatus('Checking for updates...');
+      const res = await fetch('api/update', { method: 'POST' });
+      const data = await res.json();
+      if (data.updated) {
+        alert("App updated successfully! It will restart now.");
+        window.location.reload();
+      } else if (data.error) {
+        alert("Failed to update: " + data.error);
+      } else {
+        alert("App is already up to date.");
+      }
+      setStatus('Connected');
+    } catch (err) {
+      alert("Error checking for updates: " + err.message);
+      setStatus('Connected');
+    }
+  };
+
   const renderList = () => (
     <>
       <div className="header">
@@ -104,6 +125,9 @@ function App() {
           <h1>SlurmWatch</h1>
         </div>
         <div className="header-right">
+          <button className="icon-btn" onClick={handleAppUpdate} title="Check for Updates">
+            <DownloadCloud size={20} />
+          </button>
           <button className="icon-btn"><Settings size={20} /></button>
           <button className="icon-btn"><RotateCw size={20} /></button>
         </div>

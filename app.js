@@ -3,6 +3,7 @@ const http = require('http');
 const path = require('path');
 const { Server } = require('socket.io');
 const { startPolling, stopPolling } = require('./slurm/jobPoller');
+const { startAutoUpdater, checkForUpdatesAndPull } = require('./slurm/autoUpdater');
 
 const fs = require('fs');
 const cors = require('cors');
@@ -40,13 +41,19 @@ router.get('/api/config', (req, res) => {
   res.json({ baseUri: BASE_URI, username });
 });
 
-// SPA fallback — dynamically inject <base> tag into index.html
+// API endpoint: trigger auto update manually
+router.post('/api/update', async (req, res) => {
+  try {
+    const result = await checkForUpdatesAndPull();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// SPA fallback — serve index.html directly since the build is single-file
 router.use((req, res) => {
-  let html = fs.readFileSync(path.join(__dirname, 'public', 'index.template.html'), 'utf8');
-  const baseUriWithSlash = BASE_URI.endsWith('/') ? BASE_URI : BASE_URI + '/';
-  // Inject base tag so browser always resolves assets correctly (fixes trailing slash issue)
-  html = html.replace('<head>', `<head><base href="${baseUriWithSlash}">`);
-  res.send(html);
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Mount the router at the base URI
@@ -78,4 +85,5 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`HPC Job Monitor listening on port ${PORT}`);
   console.log(`Base URI: ${BASE_URI}`);
+  startAutoUpdater();
 });
