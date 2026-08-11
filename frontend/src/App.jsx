@@ -74,19 +74,23 @@ function App() {
         <button className="icon-btn"><Settings size={20} /></button>
       </div>
       <div className="connect-screen">
-        <div className="connect-icon-wrapper">
-          <Server size={64} strokeWidth={1.5} />
+        <div className="connect-content">
+          <div className="connect-icon-wrapper">
+            <Server size={64} strokeWidth={1.5} />
+          </div>
+          <h2>SLURM Job Monitor</h2>
+          <p>Monitor your cluster jobs in real-time</p>
         </div>
-        <h2>SLURM Job Monitor</h2>
-        <p>Monitor your cluster jobs in real-time</p>
         
-        <button className="connect-btn btn-primary" onClick={handleConnect}>
-          Connect
-        </button>
-        <button className="connect-btn btn-secondary">
-          Configure Connection
-        </button>
-        {status && <div style={{marginTop: 16, fontSize: '0.9rem', color: 'var(--text-dim)'}}>{status}</div>}
+        <div className="connect-actions">
+          <button className="connect-btn btn-primary" onClick={handleConnect}>
+            Connect
+          </button>
+          <button className="connect-btn btn-secondary">
+            Configure Connection
+          </button>
+          {status && <div className="status-message">{status}</div>}
+        </div>
       </div>
     </>
   )
