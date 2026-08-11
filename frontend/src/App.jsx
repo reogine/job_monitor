@@ -132,32 +132,39 @@ function App() {
           <button className="icon-btn" onClick={handleAppUpdate} title="Check for Updates">
             <DownloadCloud size={20} />
           </button>
-          <button className="icon-btn"><Settings size={20} /></button>
           <button className="icon-btn"><RotateCw size={20} /></button>
         </div>
       </div>
       <div className="list-screen">
-        {jobs.map(job => (
-          <div key={job.id} className="job-item" onClick={() => {
-            setSelectedJob(job)
-            setView('detail')
-          }}>
-            <div className="status-dot"></div>
-            <div className="job-details">
-              <div className="job-title">{job.name}</div>
-              <div className="job-meta">
-                <span className="meta-item">#{job.id}</span>
-                <span className="meta-item"><Clock size={12} /> {job.time}</span>
-                <span className="meta-item"><Layers size={12} /> {job.partition}</span>
-              </div>
-            </div>
-            <div className="job-status">
-              <span className="status-text">{job.status}</span>
-              <span className="status-partition">{job.partition}</span>
-            </div>
-            <ChevronRight size={16} className="chevron" />
+        {jobs.length === 0 ? (
+          <div className="empty-jobs">
+            <Layers size={48} className="empty-icon" />
+            <h3>No Active Jobs</h3>
+            <p>You don't have any jobs in the queue right now.</p>
           </div>
-        ))}
+        ) : (
+          jobs.map(job => (
+            <div key={job.id} className="job-item" onClick={() => {
+              setSelectedJob(job)
+              setView('detail')
+            }}>
+              <div className={`status-dot status-${job.status?.toLowerCase() || 'pending'}`}></div>
+              <div className="job-details">
+                <div className="job-title">{job.name}</div>
+                <div className="job-meta">
+                  <span className="meta-item">#{job.id}</span>
+                  <span className="meta-item"><Clock size={12} /> {job.time}</span>
+                  <span className="meta-item"><Layers size={12} /> {job.partition}</span>
+                </div>
+              </div>
+              <div className="job-status">
+                <span className="status-text">{job.status}</span>
+                <span className="status-partition">{job.partition}</span>
+              </div>
+              <ChevronRight size={16} className="chevron" />
+            </div>
+          ))
+        )}
       </div>
     </>
   )
