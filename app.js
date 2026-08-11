@@ -4,7 +4,13 @@ const path = require('path');
 const { Server } = require('socket.io');
 const { startPolling, stopPolling } = require('./slurm/jobPoller');
 
+const fs = require('fs');
+const cors = require('cors');
+
 const app = express();
+// Enable CORS for API routes since Android WebView may load from file://
+app.use(cors({ origin: true, credentials: true }));
+
 const server = http.createServer(app);
 
 // OOD Passenger provides this env var (e.g., /pun/sys/job_monitor)
@@ -12,13 +18,15 @@ const BASE_URI = process.env.PASSENGER_BASE_URI || '/';
 
 // Socket.IO must use the same base path so OOD's NGINX proxies it correctly
 const io = new Server(server, {
-  path: BASE_URI.replace(/\/$/, '') + '/socket.io'
+  path: BASE_URI.replace(/\/$/, '') + '/socket.io',
+  cors: {
+    origin: true,
+    credentials: true
+  }
 });
 
 // Create a router mounted at the base URI
 const router = express.Router();
-
-const fs = require('fs');
 
 // Serve built React PWA from public/, but disable automatic index.html serving
 router.use(express.static(path.join(__dirname, 'public'), { index: false }));
