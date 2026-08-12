@@ -60,11 +60,14 @@ router.get('/api/user-stats', async (req, res) => {
     
     let balance = 'N/A';
     try {
-      // Use bash -l to load the profile (in case mybalance is an alias or needs a module)
-      const { stdout } = await execAsync(`bash -l -c "mybalance"`);
+      // Use bash -ic to force interactive mode which loads aliases from bashrc
+      const { stdout } = await execAsync(`bash -ic "mybalance"`, { timeout: 3000 });
       balance = stdout.trim();
+      if (!balance) balance = "Empty Output";
     } catch (e) {
       console.error('mybalance error:', e.message);
+      // Show the actual error in the UI so we can debug it!
+      balance = "Err: " + e.message.split('\n')[0].replace('Command failed: bash -ic "mybalance"', '').trim().substring(0, 30);
     }
 
     let storage = 'N/A';
