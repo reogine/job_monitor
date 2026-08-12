@@ -1059,8 +1059,7 @@ body.dark-mode .detail-section {
   }
   
   .balance-grid {
-    flex-direction: column;
-    align-items: flex-start;
+    /* Keep it side-by-side on mobile to match the height of the storage card */
     gap: 8px;
   }
   
