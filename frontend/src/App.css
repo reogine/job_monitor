@@ -502,11 +502,7 @@ body.dark-mode .detail-header {
   color: var(--text-main);
 }
 
-/* Tabs */
-  margin: 0;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
+
 
 @keyframes spin {
   100% {
