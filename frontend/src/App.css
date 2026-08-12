@@ -515,3 +515,33 @@ body {
   font-size: 14px;
   text-align: center;
 }
+
+.log-viewer {
+  flex: 1;
+  background-color: #1E1E1E;
+  color: #D4D4D4;
+  border-radius: 12px;
+  padding: 16px;
+  overflow-y: auto;
+  font-family: 'SF Mono', 'Courier New', Courier, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 8px;
+  margin-bottom: 24px;
+}
+
+.log-viewer pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}

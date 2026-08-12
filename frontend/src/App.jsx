@@ -11,6 +11,47 @@ function App() {
   const [socket, setSocket] = useState(null)
   const [status, setStatus] = useState('')
   const [username, setUsername] = useState('')
+  
+  const [jobDetails, setJobDetails] = useState(null)
+  const [jobLogs, setJobLogs] = useState('')
+  const [detailLoading, setDetailLoading] = useState(false)
+  const [logLoading, setLogLoading] = useState(false)
+
+  // Fetch job details when entering detail view
+  useEffect(() => {
+    if (view === 'detail' && selectedJob) {
+      setDetailLoading(true)
+      fetch(`/api/jobs/${selectedJob.id}`)
+        .then(res => res.json())
+        .then(data => {
+          setJobDetails(data)
+          setDetailLoading(false)
+        })
+        .catch(err => {
+          console.error(err)
+          setDetailLoading(false)
+        })
+    }
+  }, [view, selectedJob])
+
+  // Fetch job logs when activeTab or selectedJob changes
+  useEffect(() => {
+    if (view === 'detail' && selectedJob) {
+      setLogLoading(true)
+      setJobLogs('')
+      fetch(`/api/jobs/${selectedJob.id}/logs?type=${activeTab}`)
+        .then(res => res.json())
+        .then(data => {
+          setJobLogs(data.content)
+          setLogLoading(false)
+        })
+        .catch(err => {
+          console.error(err)
+          setJobLogs('Error fetching logs.')
+          setLogLoading(false)
+        })
+    }
+  }, [view, selectedJob, activeTab])
 
   useEffect(() => {
     return () => {
@@ -190,55 +231,78 @@ function App() {
           </div>
           
           <div className="info-grid">
-            <div className="grid-item"><Layers size={14} /> Partition: <span className="grid-val">{selectedJob?.partition}</span></div>
-            <div className="grid-item"><Cpu size={14} /> CPUs: <span className="grid-val">12</span></div>
-            <div className="grid-item"><Monitor size={14} /> Node List: <span className="grid-val">pike</span></div>
-            <div className="grid-item"><Battery size={14} /> RAM: <span className="grid-val">2.0 GB / 16.0 GB</span></div>
-            <div className="grid-item"><Clock size={14} /> Elapsed: <span className="grid-val">{selectedJob?.time}</span></div>
-            <div className="grid-item"><Clock size={14} /> Limit: <span className="grid-val">10-00:00:00</span></div>
+            <div className="grid-item"><Layers size={14} /> Partition: <span className="grid-val">{jobDetails?.partition || selectedJob?.partition}</span></div>
+            <div className="grid-item"><Cpu size={14} /> CPUs: <span className="grid-val">{jobDetails?.numCPUs || '-'}</span></div>
+            <div className="grid-item"><Monitor size={14} /> Node List: <span className="grid-val">{jobDetails?.nodeList || selectedJob?.nodeList || '-'}</span></div>
+            <div className="grid-item"><Battery size={14} /> Min RAM: <span className="grid-val">{jobDetails?.minMemoryNode || '-'}</span></div>
+            <div className="grid-item"><Clock size={14} /> Elapsed: <span className="grid-val">{jobDetails?.runTime || selectedJob?.time}</span></div>
+            <div className="grid-item"><Clock size={14} /> Limit: <span className="grid-val">{jobDetails?.timeLimit || '-'}</span></div>
           </div>
         </div>
         
-        <div className="efficiency-section">
-          <div className="section-title">Resource Efficiency</div>
-          <div className="rings-container">
-            <div className="ring-wrapper">
-              <div className="ring" style={{'--percentage': '25%', '--ring-color': '#FF9500'}}>
-                <div className="ring-inner">
-                  <Cpu size={14} />
-                  <span>25%</span>
+        {detailLoading ? (
+          <div style={{padding: '24px', textAlign: 'center', color: 'var(--text-secondary)'}}>Loading advanced details...</div>
+        ) : (
+          jobDetails?.efficiency ? (
+            <div className="efficiency-section">
+              <div className="section-title">Resource Efficiency</div>
+              <div className="rings-container">
+                <div className="ring-wrapper">
+                  <div className="ring" style={{'--percentage': `${jobDetails.efficiency.cpuPercent || 0}%`, '--ring-color': '#FF9500'}}>
+                    <div className="ring-inner">
+                      <Cpu size={14} />
+                      <span>{jobDetails.efficiency.cpuPercent || 0}%</span>
+                    </div>
+                  </div>
+                  <div className="ring-label">CPU</div>
+                  <div className="ring-sub">{jobDetails.efficiency.cpuUtilized || '0'} / {jobDetails.efficiency.cpuCoreWalltime || '0'}</div>
+                </div>
+                <div className="ring-wrapper">
+                  <div className="ring" style={{'--percentage': `${jobDetails.efficiency.memPercent || 0}%`, '--ring-color': '#FF3B30'}}>
+                    <div className="ring-inner">
+                      <Battery size={14} />
+                      <span>{jobDetails.efficiency.memPercent || 0}%</span>
+                    </div>
+                  </div>
+                  <div className="ring-label">Memory</div>
+                  <div className="ring-sub">{jobDetails.efficiency.memUtilized || '0'} / {jobDetails.efficiency.memLimit || '0'}</div>
                 </div>
               </div>
-              <div className="ring-label">CPU</div>
-              <div className="ring-sub">5-21:25:17 / 22-18:17:12</div>
+              
+              <div className="time-stats">
+                <div><Clock size={12} style={{display: 'inline', marginRight: '4px', verticalAlign: '-2px'}}/> Wall-clock time: <span className="time-val">{jobDetails.efficiency.wallClockTime || '-'}</span></div>
+                <div>Core-walltime: <span className="time-val">{jobDetails.efficiency.cpuCoreWalltime || '-'}</span></div>
+              </div>
             </div>
-            <div className="ring-wrapper">
-              <div className="ring" style={{'--percentage': '12%', '--ring-color': '#FF3B30'}}>
-                <div className="ring-inner">
-                  <Battery size={14} />
-                  <span>12%</span>
+          ) : (
+            <div className="efficiency-section">
+              <div className="section-title">Requested Resources</div>
+              <div style={{color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '16px'}}>
+                Efficiency metrics (seff) are not available yet. Showing requested limits.
+              </div>
+              <div className="rings-container">
+                <div className="ring-wrapper">
+                  <div className="ring" style={{'--percentage': '100%', '--ring-color': '#34C759'}}>
+                    <div className="ring-inner">
+                      <Cpu size={14} />
+                      <span>{jobDetails?.numCPUs || '-'}</span>
+                    </div>
+                  </div>
+                  <div className="ring-label">Req. CPUs</div>
+                </div>
+                <div className="ring-wrapper">
+                  <div className="ring" style={{'--percentage': '100%', '--ring-color': '#007AFF'}}>
+                    <div className="ring-inner">
+                      <Battery size={14} />
+                      <span>{jobDetails?.minMemoryNode?.replace('G', ' GB') || '-'}</span>
+                    </div>
+                  </div>
+                  <div className="ring-label">Req. Memory</div>
                 </div>
               </div>
-              <div className="ring-label">Memory</div>
-              <div className="ring-sub">2.0 GB / 16.0 GB</div>
             </div>
-            <div className="ring-wrapper">
-              <div className="ring" style={{'--percentage': '18%', '--ring-color': '#FF3B30'}}>
-                <div className="ring-inner">
-                  <Clock size={14} />
-                  <span>18%</span>
-                </div>
-              </div>
-              <div className="ring-label">Time</div>
-              <div className="ring-sub">{selectedJob?.time} / 10-00:00:00</div>
-            </div>
-          </div>
-          
-          <div className="time-stats">
-            <div><Clock size={12} style={{display: 'inline', marginRight: '4px', verticalAlign: '-2px'}}/> Wall-clock time: <span className="time-val">{selectedJob?.time}</span></div>
-            <div>Core-walltime: <span className="time-val">22-18:17:12</span></div>
-          </div>
-        </div>
+          )
+        )}
         
         <div className="tabs-section">
           <div className="section-title">Select Log File</div>
@@ -251,11 +315,22 @@ function App() {
             </div>
           </div>
           
-          <div className="empty-state">
-            <FileText size={48} className="empty-icon" />
-            <h3>Empty File</h3>
-            <p>The requested log file exists but is currently empty.</p>
-          </div>
+          {logLoading ? (
+            <div className="empty-state">
+              <RotateCw size={48} className="empty-icon spin" />
+              <h3>Loading Log...</h3>
+            </div>
+          ) : jobLogs ? (
+            <div className="log-viewer">
+              <pre>{jobLogs}</pre>
+            </div>
+          ) : (
+            <div className="empty-state">
+              <FileText size={48} className="empty-icon" />
+              <h3>Empty File</h3>
+              <p>The requested log file exists but is currently empty.</p>
+            </div>
+          )}
         </div>
       </div>
     </>

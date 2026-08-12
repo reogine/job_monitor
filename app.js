@@ -51,6 +51,42 @@ router.post('/api/update', async (req, res) => {
   }
 });
 
+// API endpoint: fetch advanced job details via scontrol and seff
+const { getJobDetails, getJobLog } = require('./slurm/jobDetails');
+
+router.get('/api/jobs/:id', async (req, res) => {
+  try {
+    const details = await getJobDetails(req.params.id);
+    res.json(details);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API endpoint: fetch standard output or error logs for a job
+router.get('/api/jobs/:id/logs', async (req, res) => {
+  try {
+    const type = req.query.type; // 'out' or 'err'
+    const details = await getJobDetails(req.params.id);
+    
+    let logPath;
+    if (type === 'err') {
+      logPath = details.stdErr;
+    } else {
+      logPath = details.stdOut;
+    }
+
+    if (!logPath || logPath === 'N/A') {
+      return res.json({ content: 'No log file path available.' });
+    }
+
+    const content = await getJobLog(logPath);
+    res.json({ content });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // SPA fallback — serve index.html directly since the build is single-file
 router.use((req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
