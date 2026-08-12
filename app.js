@@ -66,8 +66,9 @@ router.get('/api/user-stats', async (req, res) => {
       if (!balance) balance = "Empty Output";
     } catch (e) {
       console.error('mybalance error:', e.message);
-      // Show the actual error in the UI so we can debug it!
-      balance = "Err: " + e.message.split('\n')[0].replace('Command failed: bash -ic "mybalance"', '').trim().substring(0, 30);
+      // Show the actual stderr in the UI so we can debug it!
+      const errStr = (e.stderr || e.message).replace('Command failed: bash -ic "mybalance"', '').trim();
+      balance = "Err: " + errStr.substring(0, 40);
     }
 
     let storage = 'N/A';
