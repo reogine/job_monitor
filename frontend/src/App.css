@@ -525,18 +525,25 @@ body {
 
 /* Dashboard stats */
 .dashboard-stats {
-  padding: 16px;
-  background-color: var(--card-bg);
-  border-bottom: 1px solid var(--border-color);
-  margin-bottom: 12px;
+  padding: 24px 16px 16px 16px;
+  background: transparent;
+  border-bottom: none;
+  margin-bottom: 0;
 }
 .user-greeting {
-  font-weight: 600;
-  margin-bottom: 12px;
+  font-weight: 700;
+  font-size: 24px;
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  color: var(--text-main);
+  letter-spacing: -0.5px;
+}
+.user-greeting svg {
   color: var(--primary);
+  width: 24px;
+  height: 24px;
 }
 .stats-cards {
   display: flex;
@@ -544,22 +551,24 @@ body {
 }
 .stat-card {
   flex: 1;
-  background: var(--bg-color);
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 12px;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 .stat-title {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-secondary);
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
+  font-weight: 500;
 }
 .stat-value {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 700;
   color: var(--text-main);
 }
 
