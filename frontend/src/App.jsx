@@ -96,7 +96,7 @@ function App() {
   const handleConnect = async () => {
     setStatus('Connecting...')
     try {
-      const res = await fetch('api/config')
+      const basePath = window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname + '/'; const res = await fetch(basePath + 'api/config')
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
       if (data.baseUri) {
