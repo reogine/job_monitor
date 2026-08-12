@@ -97,26 +97,6 @@ function resolvePath(filePath, jobId, jobName, workDir) {
   return resolved;
 }
 
-async function getJobLog(filePath, lines = 1000) {
-  if (!filePath || filePath === 'N/A') return 'No log file path available.';
-  
-  try {
-    const { stdout } = await execAsync(`tail -n ${lines} "${filePath}"`);
-    return stdout || '(Log file is empty)';
-  } catch (err) {
-    // If tail fails, let's gather deep debug info for the user
-    try {
-      const path = require('path');
-      const dir = path.dirname(filePath);
-      const { stdout: lsOut } = await execAsync(`ls -ld "${dir}"`);
-      return `Error reading log file: ${err.message}\n\nDEBUG INFO:\nThe directory EXISTS on the web node:\n${lsOut}\nBut tailing the file failed. File might not be created yet.`;
-    } catch (lsErr) {
-      return `File not found on the Web Server Node: ${filePath}\n\nDEBUG INFO:\nThe web server cannot even see the directory! Error: ${lsErr.message}\nThis means the OOD Web Node does not have this filesystem mounted!`;
-    }
-  }
-}
-
 module.exports = {
-  getJobDetails,
-  getJobLog
+  getJobDetails
 };

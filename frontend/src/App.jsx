@@ -6,16 +6,13 @@ import './App.css'
 function App() {
   const [view, setView] = useState('connect') // 'connect', 'list', 'detail'
   const [selectedJob, setSelectedJob] = useState(null)
-  const [activeTab, setActiveTab] = useState('out')
   const [jobs, setJobs] = useState([]) // persistent state
   const [socket, setSocket] = useState(null)
   const [status, setStatus] = useState('')
   const [username, setUsername] = useState('')
   
   const [jobDetails, setJobDetails] = useState(null)
-  const [jobLogs, setJobLogs] = useState('')
   const [detailLoading, setDetailLoading] = useState(false)
-  const [logLoading, setLogLoading] = useState(false)
   
   const [userStats, setUserStats] = useState({ balance: 'Loading...', storage: 'Loading...' })
   
@@ -49,30 +46,6 @@ function App() {
   useEffect(() => {
     fetchJobDetails()
   }, [view, selectedJob])
-
-  // Fetch job logs
-  const fetchJobLogs = () => {
-    if (view === 'detail' && selectedJob) {
-      setLogLoading(true)
-      setJobLogs('')
-      const basePath = window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname + '/';
-      fetch(`${basePath}api/jobs/${selectedJob.id}/logs?type=${activeTab}`)
-        .then(res => res.json())
-        .then(data => {
-          setJobLogs(data.content)
-          setLogLoading(false)
-        })
-        .catch(err => {
-          console.error(err)
-          setJobLogs('Error fetching logs.')
-          setLogLoading(false)
-        })
-    }
-  }
-
-  useEffect(() => {
-    fetchJobLogs()
-  }, [view, selectedJob, activeTab])
 
   useEffect(() => {
     return () => {
@@ -453,40 +426,6 @@ function App() {
             </div>
           ) : null
         )}
-        
-        <div className="tabs-section">
-          <div className="section-title" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-            <span>Select Log File</span>
-            <button className="icon-btn" style={{padding: '4px', background: 'var(--bg-color)', borderRadius: '8px', border: '1px solid var(--border-color)', height: '28px', width: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center'}} onClick={fetchJobLogs} disabled={logLoading}>
-              <RotateCw size={14} className={logLoading ? "spin" : ""} style={{color: 'var(--text-secondary)'}} />
-            </button>
-          </div>
-          <div className="tabs">
-            <div className={`tab ${activeTab === 'out' ? 'active' : ''}`} onClick={() => setActiveTab('out')}>
-              Standard Output (.out)
-            </div>
-            <div className={`tab ${activeTab === 'err' ? 'active' : ''}`} onClick={() => setActiveTab('err')}>
-              Standard Error (.err)
-            </div>
-          </div>
-          
-          {logLoading ? (
-            <div className="empty-state">
-              <RotateCw size={48} className="empty-icon spin" />
-              <h3>Loading Log...</h3>
-            </div>
-          ) : jobLogs ? (
-            <div className="log-viewer">
-              <pre>{jobLogs}</pre>
-            </div>
-          ) : (
-            <div className="empty-state">
-              <FileText size={48} className="empty-icon" />
-              <h3>Empty File</h3>
-              <p>The requested log file exists but is currently empty.</p>
-            </div>
-          )}
-        </div>
       </div>
     </>
   )
