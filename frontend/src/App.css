@@ -64,7 +64,7 @@ body {
 }
 
 .icon-btn {
-  background: white;
+  background: var(--card-bg);
   border: none;
   border-radius: 50%;
   width: 40px;
@@ -342,7 +342,7 @@ body {
 }
 
 .back-btn {
-  background: white;
+  background: var(--card-bg);
   border: none;
   border-radius: 50%;
   width: 40px;
@@ -361,7 +361,7 @@ body {
 }
 
 .detail-info {
-  background: white;
+  background: var(--card-bg);
   margin: 0 16px 16px;
   border-radius: 16px;
   padding: 16px;
@@ -483,7 +483,7 @@ body {
 .tabs-section {
   padding: 16px 24px;
   flex: 1;
-  background: white;
+  background: var(--card-bg);
   border-top-left-radius: 24px;
   border-top-right-radius: 24px;
   display: flex;
@@ -492,7 +492,7 @@ body {
 
 .tabs {
   display: flex;
-  background: #EFEFF4;
+  background: var(--border-color);
   border-radius: 20px;
   padding: 4px;
   margin-bottom: 24px;
@@ -510,7 +510,7 @@ body {
 }
 
 .tab.active {
-  background: white;
+  background: var(--card-bg);
   color: var(--text-main);
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
@@ -542,8 +542,9 @@ body {
 
 .log-viewer {
   flex: 1;
-  background-color: #1E1E1E;
-  color: #D4D4D4;
+  background-color: var(--card-bg);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 16px;
   overflow-y: auto;
@@ -566,15 +567,11 @@ body {
   }
 }
 
-.spin {
-  animation: spin 1s linear infinite;
-}
-
 /* Dark Mode & Theme variables */
 body.dark-mode {
   --bg-color: #121212;
   --card-bg: #1e1e1e;
-  --text-primary: #ffffff;
+  --text-main: #ffffff;
   --text-secondary: #aaaaaa;
   --border-color: #333333;
 }
@@ -582,12 +579,6 @@ body.dark-mode {
 body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
-
-/* Status colors */
-.status-completed { background-color: #34C759; }
-.status-failed { background-color: #ff3b30; }
-.status-timeout { background-color: #ff9500; }
-.status-cancelled { background-color: #8e8e93; }
 
 /* Dashboard stats */
 .dashboard-stats {
@@ -626,7 +617,7 @@ body {
 .stat-value {
   font-size: 16px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-main);
 }
 
 /* Settings Modal */
@@ -666,7 +657,7 @@ body {
   border-radius: 8px;
   border: 1px solid var(--border-color);
   background: var(--bg-color);
-  color: var(--text-primary);
+  color: var(--text-main);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -684,7 +675,7 @@ body {
   border-radius: 8px;
   border: 1px solid var(--border-color);
   background: var(--bg-color);
-  color: var(--text-primary);
+  color: var(--text-main);
 }
 .switch-user-input button {
   padding: 8px 16px;
@@ -701,7 +692,7 @@ body {
   border-radius: 8px;
   border: none;
   background: var(--border-color);
-  color: var(--text-primary);
+  color: var(--text-main);
   font-weight: 600;
   cursor: pointer;
 }
@@ -710,6 +701,8 @@ body {
 .spin {
   animation: spin 1s linear infinite;
 }
-@keyframes spin {
-  100% { transform: rotate(360deg); }
+
+
+.spin {
+  animation: spin 1s linear infinite;
 }

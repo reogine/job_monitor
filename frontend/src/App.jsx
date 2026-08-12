@@ -259,20 +259,32 @@ function App() {
   }
 
   const renderConnect = () => (
-    <div className="connect-screen">
-      <div className="logo-container">
-        <Server size={48} className="logo-icon" />
-        <h2>HPC Job Monitor</h2>
-        <p>Real-time Slurm tracking</p>
+    <>
+      <div className="header">
+        <h1>SlurmWatch</h1>
+        <button className="icon-btn" onClick={() => setShowSettings(true)}><Settings size={20} /></button>
       </div>
-      
-      <div className="connect-card">
-        <button className="connect-btn" onClick={() => handleConnect()}>Connect to Cluster</button>
+      <div className="connect-screen">
+        <div className="connect-content">
+          <div className="connect-icon-wrapper">
+            <Server size={64} strokeWidth={1.5} />
+          </div>
+          <h2>SLURM Job Monitor</h2>
+          <p>Monitor your cluster jobs in real-time</p>
+        </div>
+        
+        <div className="connect-actions">
+          <button className="connect-btn btn-primary" onClick={() => handleConnect(customUser)}>
+            Connect
+          </button>
+          {status && <div className="status-message">{status}</div>}
+        </div>
+        
+        <div className="footer-logo">
+          <img src="logo.png" alt="UM6P Toubkal Logo" />
+        </div>
       </div>
-
-      <div className="status-text">{status}</div>
-      <img src="toubkal_logo_1786413269830.jpg" alt="UM6P" className="footer-logo" />
-    </div>
+    </>
   )
 
   const renderList = () => (
