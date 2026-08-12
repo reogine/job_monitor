@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Settings, Server, LogOut, RotateCw, ChevronRight, ChevronLeft, Layers, Monitor, Clock, Battery, Cpu, FileText, DownloadCloud, User, HardDrive, CreditCard, Trash2, Moon, Sun } from 'lucide-react'
 import { io } from 'socket.io-client'
-import { LOGO_BASE64 } from './logoBase64'
 import './App.css'
 
 function App() {
@@ -306,10 +305,6 @@ function App() {
             Connect
           </button>
           {status && <div className="status-message">{status}</div>}
-        </div>
-        
-        <div className="footer-logo">
-          <img src={LOGO_BASE64} alt="UM6P Toubkal Logo"  />
         </div>
       </div>
     </>
