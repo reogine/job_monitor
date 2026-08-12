@@ -274,14 +274,14 @@ function App() {
         </div>
         
         <div className="connect-actions">
-          <button className="connect-btn btn-primary" onClick={() => handleConnect(customUser)}>
+          <button className="connect-btn btn-primary" onClick={() => handleConnect()}>
             Connect
           </button>
           {status && <div className="status-message">{status}</div>}
         </div>
         
         <div className="footer-logo">
-          <img src="logo.png" alt="UM6P Toubkal Logo" />
+          <img src="toubkal_logo_1786413269830.jpg" alt="UM6P Toubkal Logo" />
         </div>
       </div>
     </>
