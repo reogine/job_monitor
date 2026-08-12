@@ -127,10 +127,11 @@ function App() {
           <button className="connect-btn btn-primary" onClick={handleConnect}>
             Connect
           </button>
-          <button className="connect-btn btn-secondary">
-            Configure Connection
-          </button>
           {status && <div className="status-message">{status}</div>}
+        </div>
+        
+        <div className="footer-logo">
+          <img src="logo.png" alt="UM6P Toubkal Logo" />
         </div>
       </div>
     </>
