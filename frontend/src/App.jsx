@@ -433,30 +433,52 @@ function App() {
     let ended = jobDetails?.endTime && jobDetails.endTime !== 'Unknown' ? jobDetails.endTime.replace('T', ' ') : '-';
     if (ended === '-') ended = jobDetails?.timeLimit || selectedJob?.timeLimit || '-';
     
+    let seg1Fill = 0;
+    let seg2Fill = 0;
+    if (!isPending) seg1Fill = 100;
+    if (isRunning) seg2Fill = progress;
+    if (isCompleted || isFailed) seg2Fill = 100;
+
     return (
       <div className="timeline-container">
-        <div className="timeline-nodes">
-          <div className="timeline-track">
-            <div className={`timeline-progress ${isRunning ? 'active' : ''} ${isFailed ? 'failed' : ''}`} style={{height: `${progress}%`}}></div>
+        <div className="timeline-rows">
+          
+          <div className="timeline-row">
+            <div className="node-icon-col">
+              <div className="node-dot active"></div>
+              <div className="timeline-segment">
+                <div className="timeline-segment-fill active" style={{height: `${seg1Fill}%`}}></div>
+              </div>
+            </div>
+            <div className="node-text-col active">
+              <div className="node-label">Submitted</div>
+              <div className="node-time">{submitted}</div>
+            </div>
           </div>
           
-          <div className="timeline-node active">
-            <div className="node-dot"></div>
-            <div className="node-label">Submitted</div>
-            <div className="node-time">{submitted}</div>
+          <div className="timeline-row">
+            <div className="node-icon-col">
+              <div className={`node-dot ${!isPending ? 'active' : ''} ${isRunning ? 'pulsing' : ''}`}></div>
+              <div className="timeline-segment">
+                <div className={`timeline-segment-fill ${isFailed ? 'failed' : 'active'}`} style={{height: `${seg2Fill}%`}}></div>
+              </div>
+            </div>
+            <div className={`node-text-col ${!isPending ? 'active' : ''}`}>
+              <div className="node-label">{isPending ? 'Starts (Est)' : 'Started'}</div>
+              <div className="node-time">{started}</div>
+            </div>
           </div>
           
-          <div className={`timeline-node ${!isPending ? 'active' : ''} ${isRunning ? 'pulsing' : ''}`}>
-            <div className="node-dot"></div>
-            <div className="node-label">{isPending ? 'Starts (Est)' : 'Started'}</div>
-            <div className="node-time">{started}</div>
+          <div className="timeline-row">
+            <div className="node-icon-col">
+              <div className={`node-dot ${isCompleted ? 'active' : ''} ${isFailed ? 'failed' : ''}`}></div>
+            </div>
+            <div className={`node-text-col ${isCompleted ? 'active' : ''} ${isFailed ? 'failed' : ''}`}>
+              <div className="node-label">{isCompleted ? 'Ended' : (isFailed ? 'Failed' : 'Deadline')}</div>
+              <div className="node-time">{ended}</div>
+            </div>
           </div>
-          
-          <div className={`timeline-node ${isCompleted ? 'active' : ''} ${isFailed ? 'failed' : ''}`}>
-            <div className="node-dot"></div>
-            <div className="node-label">{isCompleted ? 'Ended' : (isFailed ? 'Failed' : 'Deadline')}</div>
-            <div className="node-time">{ended}</div>
-          </div>
+
         </div>
         
         {isRunning && (
