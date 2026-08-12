@@ -104,7 +104,7 @@ async function getJobLog(filePath, lines = 1000) {
     // Check if file exists first
     await fs.promises.access(filePath, fs.constants.F_OK);
     
-    const { stdout } = await execAsync(`tail -n ${lines} ${filePath}`);
+    const { stdout } = await execAsync(`tail -n ${lines} "${filePath}"`);
     return stdout || '(Log file is empty)';
   } catch (err) {
     if (err.code === 'ENOENT') {
