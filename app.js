@@ -60,8 +60,8 @@ router.get('/api/user-stats', async (req, res) => {
     
     let balance = 'N/A';
     try {
-      // Use bash -l to load the profile so mybalance can find sacctmgr in PATH
-      const { stdout } = await execAsync(`bash -l -c "/srv/software/slurm-aux/bin/mybalance"`, { timeout: 5000 });
+      // Use bash -ic to force interactive mode which bypasses non-interactive .bashrc guards
+      const { stdout } = await execAsync(`bash -ic "export PATH=$PATH:/opt/slurm/bin:/usr/local/bin:/usr/bin:/bin \bash -ic "/srv/software/slurm-aux/bin/mybalance"\bash -ic "/srv/software/slurm-aux/bin/mybalance" /srv/software/slurm-aux/bin/mybalance"`, { timeout: 5000 });
       
       let cpuTotal = 0;
       let gpuTotal = 0;
@@ -93,8 +93,8 @@ router.get('/api/user-stats', async (req, res) => {
     } catch (e) {
       console.error('mybalance error:', e.message);
       // Show the actual stderr in the UI so we can debug it!
-      const errStr = (e.stderr || e.message).replace('Command failed: /srv/software/slurm-aux/bin/mybalance', '').trim();
-      balance = "Err: " + errStr.substring(0, 40);
+      const errStr = (e.stderr || e.message).replace('Command failed: bash -ic "export PATH=$PATH:/opt/slurm/bin:/usr/local/bin:/usr/bin:/bin \bash -ic "/srv/software/slurm-aux/bin/mybalance"\bash -ic "/srv/software/slurm-aux/bin/mybalance" /srv/software/slurm-aux/bin/mybalance"', '').trim();
+      balance = "Err: " + errStr.substring(0, 200);
     }
 
     let storage = 'N/A';
