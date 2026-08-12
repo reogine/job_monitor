@@ -20,9 +20,8 @@ function App() {
   const [userStats, setUserStats] = useState({ balance: 'Loading...', storage: 'Loading...' })
   
   // Theme state
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light')
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark')
   const [showSettings, setShowSettings] = useState(false)
-  const [switchUsername, setSwitchUsername] = useState('')
 
   useEffect(() => {
     document.body.className = theme === 'dark' ? 'dark-mode' : ''
@@ -101,7 +100,6 @@ function App() {
     setJobs([])
     
     // fetch stats once
-    fetchUserStats(user)
     
     if (socket) {
       socket.disconnect()
@@ -156,21 +154,45 @@ function App() {
     setSocket(newSocket)
   }
 
-  const handleConnect = async (customUser = null) => {
+  const handleConnect = async () => {
     setStatus('Connecting...')
     try {
       const basePath = window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname + '/'; 
-      const url = customUser ? `${basePath}api/config?user=${encodeURIComponent(customUser)}` : `${basePath}api/config`;
+      const url = `${basePath}api/config`;
       const res = await fetch(url)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
       if (data.baseUri) {
         initSocket(data.baseUri, data.username)
+        
+        setStatus('Fetching account balance...')
+        try {
+          const statsRes = await fetch(`${basePath}api/user-stats`)
+          if (statsRes.ok) {
+            const statsData = await statsRes.json()
+            setUserStats(statsData)
+          }
+        } catch (e) {
+          console.error("Failed to fetch stats during connect", e)
+        }
+        
+        setView('list')
       }
     } catch (err) {
       setStatus(`Connection failed: ${err.message}. Retrying...`)
-      setTimeout(() => handleConnect(customUser), 3000)
+      setTimeout(() => handleConnect(), 3000)
     }
+  }
+
+  const handleLogout = () => {
+    document.cookie.split(";").forEach(c => {
+      document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/");
+    });
+    localStorage.clear();
+    window.location.href = '/pun/sys/dashboard/logout';
+    setTimeout(() => {
+      window.location.href = '/';
+    }, 500);
   }
 
   const handleAppUpdate = async () => {
@@ -350,21 +372,10 @@ function App() {
               </button>
             </div>
             <div className="settings-section">
-              <label>Switch User</label>
-              <div className="switch-user-input">
-                <input 
-                  type="text" 
-                  placeholder={username} 
-                  value={switchUsername}
-                  onChange={e => setSwitchUsername(e.target.value)}
-                />
-                <button onClick={() => {
-                  if (switchUsername.trim()) {
-                    handleConnect(switchUsername.trim())
-                    setShowSettings(false)
-                  }
-                }}>Switch</button>
-              </div>
+              <label>Account</label>
+              <button className="theme-toggle-btn logout-btn" onClick={handleLogout}>
+                <LogOut size={16} style={{marginRight: '8px'}} /> Sign Out / Switch User
+              </button>
             </div>
             <button className="close-modal-btn" onClick={() => setShowSettings(false)}>Close</button>
           </div>
