@@ -9,15 +9,21 @@ def create_rounded_mask(size, radius):
 
 def process(in_path, out_path):
     img = Image.open(in_path).convert("RGBA")
-    # Crop based on the bounding box we found
-    cropped = img.crop((86, 87, 938, 938))
+    w, h = img.size
+    
+    # We want to crop an 850x850 center square (the icon is centered)
+    crop_size = 850
+    left = (w - crop_size) / 2
+    top = (h - crop_size) / 2
+    right = left + crop_size
+    bottom = top + crop_size
+    
+    cropped = img.crop((int(left), int(top), int(right), int(bottom)))
     
     # Resize to 512x512
     square = cropped.resize((512, 512), Image.Resampling.LANCZOS)
     
-    # Create mask with radius, e.g. 100 for 512x512
-    # The original image seems to have a large radius, maybe 20-25% of the size.
-    # 512 * 0.22 ~ 112
+    # Create mask with radius, e.g. 112 for 512x512
     mask = create_rounded_mask((512, 512), 112)
     
     # Apply mask
@@ -27,4 +33,4 @@ def process(in_path, out_path):
     square.save(out_path, "PNG")
     print(f"Saved masked transparent icon to {out_path}")
 
-process("/Users/mostapha/.gemini/antigravity/brain/14eabdc9-e64a-4119-9010-3ef8f2b7e837/.user_uploaded/media_1786574367317.jpg", "frontend/public/icon.png")
+process("/Users/mostapha/.gemini/antigravity/brain/14eabdc9-e64a-4119-9010-3ef8f2b7e837/.user_uploaded/media_1786577550616.jpg", "frontend/public/icon.png")
