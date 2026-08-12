@@ -60,9 +60,8 @@ router.get('/api/user-stats', async (req, res) => {
     
     let balance = 'N/A';
     try {
-      // Use bash -ic to force interactive mode which loads aliases from bashrc
-      // Use the absolute path provided by the user
-      const { stdout } = await execAsync(`/srv/software/slurm-aux/bin/mybalance`, { timeout: 5000 });
+      // Use bash -l to load the profile so mybalance can find sacctmgr in PATH
+      const { stdout } = await execAsync(`bash -l -c "/srv/software/slurm-aux/bin/mybalance"`, { timeout: 5000 });
       
       let cpuTotal = 0;
       let gpuTotal = 0;
