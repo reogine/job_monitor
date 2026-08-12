@@ -20,6 +20,15 @@ function App() {
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark')
   const [showSettings, setShowSettings] = useState(false)
 
+  const parseStorage = (str) => {
+    if (!str || typeof str !== 'string') return { text: 'N/A', percent: 0 };
+    const match = str.match(/(.*)\((.*)%\)/);
+    if (match) {
+      return { text: match[1].trim(), percent: parseInt(match[2], 10) || 0 };
+    }
+    return { text: str, percent: 0 };
+  }
+
   useEffect(() => {
     document.body.className = theme === 'dark' ? 'dark-mode' : ''
     localStorage.setItem('theme', theme)
@@ -309,11 +318,11 @@ function App() {
                 <div className="balance-grid">
                   <div className="balance-item">
                     <Cpu size={14} style={{color: 'var(--primary)'}} />
-                    <span>{userStats.balance.cpu?.toLocaleString()} hrs</span>
+                    <span>CPU: {userStats.balance.cpu?.toLocaleString()} hrs</span>
                   </div>
                   <div className="balance-item">
                     <CircuitBoard size={14} style={{color: '#34C759'}} />
-                    <span>{userStats.balance.gpu?.toLocaleString()} hrs</span>
+                    <span>GPU: {userStats.balance.gpu?.toLocaleString()} hrs</span>
                   </div>
                 </div>
               ) : (
@@ -322,7 +331,23 @@ function App() {
             </div>
             <div className="stat-card storage-card">
               <div className="stat-title"><HardDrive size={14} /> Storage</div>
-              <div className="stat-value">{userStats.storage}</div>
+              {(() => {
+                const storageObj = parseStorage(userStats.storage);
+                let color = '#34C759'; // green
+                if (storageObj.percent > 80) color = '#FF9500'; // orange
+                if (storageObj.percent > 90) color = '#FF3B30'; // red
+                
+                return (
+                  <div className="storage-container">
+                    <div className="stat-value">{storageObj.text}</div>
+                    {storageObj.percent > 0 && (
+                      <div className="storage-progress-bg">
+                        <div className="storage-progress-fill" style={{ width: `${storageObj.percent}%`, backgroundColor: color }}></div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
@@ -385,8 +410,8 @@ function App() {
       <div className="detail-screen modern-details">
         <div className="detail-info-modern">
           <div className="info-top-modern">
-            <div className={`status-badge status-${selectedJob?.status?.toLowerCase() || 'pending'}`}>
-              <div className="status-dot"></div>
+            <div className={`status-badge status-text-${selectedJob?.status?.toLowerCase() || 'pending'}`}>
+              <div className={`status-dot status-${selectedJob?.status?.toLowerCase() || 'pending'}`}></div>
               {selectedJob?.status}
             </div>
             <div className="job-id-badge">#{selectedJob?.id}</div>
