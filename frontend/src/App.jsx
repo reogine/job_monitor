@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Settings, Server, LogOut, RotateCw, ChevronRight, ChevronLeft, Layers, Monitor, Clock, Battery, Cpu, FileText, DownloadCloud, User, HardDrive, CreditCard, Trash2, Moon, Sun } from 'lucide-react'
 import { io } from 'socket.io-client'
+import { LOGO_BASE64 } from './logoBase64'
 import './App.css'
 
 function App() {
@@ -303,7 +304,7 @@ function App() {
         </div>
         
         <div className="footer-logo">
-          <img src="toubkal_logo_1786413269830.jpg" alt="UM6P Toubkal Logo" />
+          <img src={LOGO_BASE64} alt="UM6P Toubkal Logo"  />
         </div>
       </div>
     </>
