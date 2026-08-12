@@ -29,6 +29,14 @@ const io = new Server(server, {
 // Create a router mounted at the base URI
 const router = express.Router();
 
+// Enforce trailing slash on BASE_URI so relative paths work (e.g., logo.png, favicon.svg)
+app.use((req, res, next) => {
+  if (req.originalUrl === BASE_URI.replace(/\/$/, '')) {
+    return res.redirect(301, req.originalUrl + '/');
+  }
+  next();
+});
+
 // Serve built React PWA from public/, but disable automatic index.html serving
 router.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
