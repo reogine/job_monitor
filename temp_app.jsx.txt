@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Menu, Server, LogOut, RotateCw, ChevronRight, ChevronLeft, Layers, Monitor, Clock, Battery, Cpu, DownloadCloud, User, HardDrive, CreditCard, Trash2, Moon, Sun, CircuitBoard, Calendar, Zap, Terminal } from 'lucide-react'
+import { Settings, Server, LogOut, RotateCw, ChevronRight, ChevronLeft, Layers, Monitor, Clock, Battery, Cpu, FileText, DownloadCloud, User, HardDrive, CreditCard, Trash2, Moon, Sun } from 'lucide-react'
 import { io } from 'socket.io-client'
 import './App.css'
 
@@ -287,7 +287,7 @@ function App() {
     <>
       <div className="header">
         <div className="header-left">
-          <button className="icon-btn" onClick={() => setShowSettings(true)}><Menu size={20} /></button>
+          <button className="icon-btn" onClick={() => setShowSettings(true)}><Settings size={20} /></button>
           <h1>SlurmWatch</h1>
         </div>
         <div className="header-right">
@@ -303,24 +303,11 @@ function App() {
             <User size={16} /> {username}
           </div>
           <div className="stats-cards">
-            <div className="stat-card balance-card">
+            <div className="stat-card">
               <div className="stat-title"><CreditCard size={14} /> Balance</div>
-              {typeof userStats.balance === 'object' && !userStats.balance.error ? (
-                <div className="balance-grid">
-                  <div className="balance-item">
-                    <Cpu size={14} style={{color: 'var(--primary)'}} />
-                    <span>{userStats.balance.cpu?.toLocaleString()} hrs</span>
-                  </div>
-                  <div className="balance-item">
-                    <CircuitBoard size={14} style={{color: '#34C759'}} />
-                    <span>{userStats.balance.gpu?.toLocaleString()} hrs</span>
-                  </div>
-                </div>
-              ) : (
-                <div className="stat-value">{userStats.balance?.error || userStats.balance}</div>
-              )}
+              <div className="stat-value">{userStats.balance}</div>
             </div>
-            <div className="stat-card storage-card">
+            <div className="stat-card">
               <div className="stat-title"><HardDrive size={14} /> Storage</div>
               <div className="stat-value">{userStats.storage}</div>
             </div>
@@ -351,6 +338,7 @@ function App() {
       {showSettings && (
         <div className="modal-overlay" onClick={() => setShowSettings(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <h3>Settings</h3>
             <div className="settings-section">
               <label>Theme</label>
               <button className="theme-toggle-btn" onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')}>
@@ -382,65 +370,24 @@ function App() {
         </button>
       </div>
       
-      <div className="detail-screen modern-details">
-        <div className="detail-info-modern">
-          <div className="info-top-modern">
-            <div className={`status-badge status-${selectedJob?.status?.toLowerCase() || 'pending'}`}>
-              <div className="status-dot"></div>
+      <div className="detail-screen">
+        <div className="detail-info">
+          <div className="info-top">
+            <div className="info-status">
+              <div className={`status-dot status-${selectedJob?.status?.toLowerCase() || 'pending'}`}></div>
               {selectedJob?.status}
             </div>
-            <div className="job-id-badge">#{selectedJob?.id}</div>
+            <div>ID: {selectedJob?.id}</div>
           </div>
-
-          <div className="detail-section">
-            <h4 className="section-label">Timing</h4>
-            <div className="detail-row">
-              <span className="row-label"><Calendar size={14}/> Submitted</span>
-              <span className="row-val">{jobDetails?.submitTime || '-'}</span>
-            </div>
-            <div className="detail-row">
-              <span className="row-label"><Clock size={14}/> Started</span>
-              <span className="row-val">{jobDetails?.startTime || '-'}</span>
-            </div>
-            <div className="detail-row">
-              <span className="row-label"><Clock size={14}/> Ends / Limit</span>
-              <span className="row-val">{jobDetails?.endTime || '-'} / {jobDetails?.timeLimit || selectedJob?.timeLimit}</span>
-            </div>
-            <div className="detail-row">
-              <span className="row-label"><Clock size={14}/> Elapsed</span>
-              <span className="row-val">{jobDetails?.runTime || selectedJob?.time}</span>
-            </div>
+          
+          <div className="info-grid">
+            <div className="grid-item"><Layers size={14} /> Partition: <span className="grid-val">{jobDetails?.partition || selectedJob?.partition}</span></div>
+            <div className="grid-item"><Cpu size={14} /> CPUs: <span className="grid-val">{jobDetails?.numCPUs || '-'}</span></div>
+            <div className="grid-item"><Monitor size={14} /> Node List: <span className="grid-val">{jobDetails?.nodeList || selectedJob?.nodeList || '-'}</span></div>
+            <div className="grid-item"><Battery size={14} /> Min RAM: <span className="grid-val">{jobDetails?.minMemoryNode || '-'}</span></div>
+            <div className="grid-item"><Clock size={14} /> Elapsed: <span className="grid-val">{jobDetails?.runTime || selectedJob?.time}</span></div>
+            <div className="grid-item"><Clock size={14} /> Limit: <span className="grid-val">{jobDetails?.timeLimit || '-'}</span></div>
           </div>
-
-          <div className="detail-section">
-            <h4 className="section-label">Resources</h4>
-            <div className="detail-row">
-              <span className="row-label"><Layers size={14}/> Partition</span>
-              <span className="row-val">{jobDetails?.partition || selectedJob?.partition}</span>
-            </div>
-            <div className="detail-row">
-              <span className="row-label"><Monitor size={14}/> Node List</span>
-              <span className="row-val">{jobDetails?.nodeList || selectedJob?.nodeList || '-'}</span>
-            </div>
-            <div className="detail-row">
-              <span className="row-label"><Zap size={14}/> Allocated</span>
-              <span className="row-val">{jobDetails?.allocTres ? jobDetails.allocTres.split(',').join(' • ') : (jobDetails?.numCPUs ? `${jobDetails.numCPUs} CPUs` : '-')}</span>
-            </div>
-            <div className="detail-row">
-              <span className="row-label"><Battery size={14}/> Min RAM</span>
-              <span className="row-val">{jobDetails?.minMemoryNode || '-'}</span>
-            </div>
-          </div>
-
-          {jobDetails?.command && (
-            <div className="detail-section">
-              <h4 className="section-label">Command</h4>
-              <div className="command-box">
-                <Terminal size={14} className="command-icon" />
-                <span>{jobDetails.command}</span>
-              </div>
-            </div>
-          )}
         </div>
         
         {detailLoading ? (
@@ -470,6 +417,11 @@ function App() {
                   <div className="ring-label">Memory</div>
                   <div className="ring-sub">{jobDetails.efficiency.memUtilized || '0'} / {jobDetails.efficiency.memLimit || '0'}</div>
                 </div>
+              </div>
+              
+              <div className="time-stats">
+                <div><Clock size={12} style={{display: 'inline', marginRight: '4px', verticalAlign: '-2px'}}/> Wall-clock time: <span className="time-val">{jobDetails.efficiency.wallClockTime || '-'}</span></div>
+                <div>Core-walltime: <span className="time-val">{jobDetails.efficiency.cpuCoreWalltime || '-'}</span></div>
               </div>
             </div>
           ) : null

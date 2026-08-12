@@ -91,11 +91,11 @@ router.get('/api/user-stats', async (req, res) => {
       }
       
       if (parsedAny) {
-        balance = `CPU: ${cpuTotal.toLocaleString()}h | GPU: ${gpuTotal.toLocaleString()}h`;
+        balance = { cpu: cpuTotal, gpu: gpuTotal };
       } else if (stdout.trim()) {
-        balance = "Unknown format";
+        balance = { error: "Unknown format" };
       } else {
-        balance = "Empty Output";
+        balance = { error: "Empty Output" };
       }
     } catch (e) {
       console.error('mybalance error:', e.message);
