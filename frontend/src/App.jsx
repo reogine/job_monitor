@@ -395,6 +395,131 @@ function App() {
     </>
   )
 
+  const parseSlurmTime = (timeStr) => {
+    if (!timeStr || timeStr === 'N/A' || timeStr === 'None') return 0;
+    // Format: DD-HH:MM:SS or HH:MM:SS or MM:SS
+    let days = 0;
+    let parts = timeStr;
+    if (timeStr.includes('-')) {
+      const split = timeStr.split('-');
+      days = parseInt(split[0], 10) || 0;
+      parts = split[1];
+    }
+    const timeParts = parts.split(':').map(n => parseInt(n, 10) || 0);
+    let seconds = 0;
+    if (timeParts.length === 3) {
+      seconds = timeParts[0] * 3600 + timeParts[1] * 60 + timeParts[2];
+    } else if (timeParts.length === 2) {
+      seconds = timeParts[0] * 60 + timeParts[1];
+    }
+    return days * 86400 + seconds;
+  };
+
+  const renderTimeline = () => {
+    const elapsed = parseSlurmTime(jobDetails?.runTime || selectedJob?.time);
+    const limit = parseSlurmTime(jobDetails?.timeLimit || selectedJob?.timeLimit);
+    let progress = 0;
+    if (limit > 0 && elapsed > 0) {
+      progress = Math.min(100, Math.round((elapsed / limit) * 100));
+    }
+    
+    const isRunning = selectedJob?.status?.toUpperCase() === 'RUNNING';
+    const isCompleted = selectedJob?.status?.toUpperCase() === 'COMPLETED';
+    const isPending = selectedJob?.status?.toUpperCase() === 'PENDING';
+    const isFailed = !isRunning && !isCompleted && !isPending;
+    
+    const submitted = jobDetails?.submitTime ? jobDetails.submitTime.replace('T', ' ') : '-';
+    const started = jobDetails?.startTime && jobDetails.startTime !== 'Unknown' ? jobDetails.startTime.replace('T', ' ') : '-';
+    let ended = jobDetails?.endTime && jobDetails.endTime !== 'Unknown' ? jobDetails.endTime.replace('T', ' ') : '-';
+    if (ended === '-') ended = jobDetails?.timeLimit || selectedJob?.timeLimit || '-';
+    
+    return (
+      <div className="timeline-container">
+        <div className="timeline-track">
+          <div className={`timeline-progress ${isRunning ? 'active' : ''} ${isFailed ? 'failed' : ''}`} style={{width: `${progress}%`}}></div>
+        </div>
+        
+        <div className="timeline-nodes">
+          <div className="timeline-node active">
+            <div className="node-dot"></div>
+            <div className="node-label">Submitted</div>
+            <div className="node-time">{submitted}</div>
+          </div>
+          
+          <div className={`timeline-node ${!isPending ? 'active' : ''} ${isRunning ? 'pulsing' : ''}`}>
+            <div className="node-dot"></div>
+            <div className="node-label">{isPending ? 'Starts (Est)' : 'Started'}</div>
+            <div className="node-time">{started}</div>
+          </div>
+          
+          <div className={`timeline-node ${isCompleted ? 'active' : ''} ${isFailed ? 'failed' : ''}`}>
+            <div className="node-dot"></div>
+            <div className="node-label">{isCompleted ? 'Ended' : (isFailed ? 'Failed' : 'Deadline')}</div>
+            <div className="node-time">{ended}</div>
+          </div>
+        </div>
+        
+        {isRunning && (
+          <div className="timeline-meta">
+            <span>Elapsed: {jobDetails?.runTime || selectedJob?.time}</span>
+            <span>{progress}%</span>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderAllocatedTags = () => {
+    const allocStr = jobDetails?.allocTres || '';
+    if (!allocStr) {
+      return jobDetails?.numCPUs ? <span className="resource-tag tag-cpu"><Cpu size={12}/> {jobDetails.numCPUs} CPU{jobDetails.numCPUs > 1 ? 's' : ''}</span> : <span className="row-val">-</span>;
+    }
+    
+    const parts = allocStr.split(',');
+    return (
+      <div className="resource-tags-container">
+        {parts.map((part, idx) => {
+          const [key, val] = part.split('=');
+          if (!val) return null;
+          
+          let icon = null;
+          let className = 'tag-neutral';
+          let displayName = val;
+          let displayKey = key;
+          
+          if (key === 'cpu') {
+            icon = <Cpu size={12} />;
+            className = 'tag-cpu';
+            displayName = `${val} Cores`;
+            displayKey = '';
+          } else if (key === 'mem') {
+            icon = <Battery size={12} />;
+            className = 'tag-mem';
+            displayKey = '';
+          } else if (key.includes('gpu')) {
+            icon = <CircuitBoard size={12} />;
+            className = 'tag-gpu';
+            displayKey = key.split('/')[1] || 'gpu';
+            displayKey = displayKey.toUpperCase() + ': ';
+          } else if (key === 'node') {
+            icon = <Server size={12} />;
+            className = 'tag-node';
+            displayName = `${val} Node${val > 1 ? 's' : ''}`;
+            displayKey = '';
+          } else {
+            displayKey = key + ': ';
+          }
+          
+          return (
+            <span key={idx} className={`resource-tag ${className}`}>
+              {icon} {displayKey}{displayName}
+            </span>
+          );
+        })}
+      </div>
+    );
+  };
+
   const renderDetail = () => (
     <>
       <div className="detail-header">
@@ -417,24 +542,9 @@ function App() {
             <div className="job-id-badge">#{selectedJob?.id}</div>
           </div>
 
-          <div className="detail-section">
-            <h4 className="section-label">Timing</h4>
-            <div className="detail-row">
-              <span className="row-label"><Calendar size={14}/> Submitted</span>
-              <span className="row-val">{jobDetails?.submitTime || '-'}</span>
-            </div>
-            <div className="detail-row">
-              <span className="row-label"><Clock size={14}/> Started</span>
-              <span className="row-val">{jobDetails?.startTime || '-'}</span>
-            </div>
-            <div className="detail-row">
-              <span className="row-label"><Clock size={14}/> Ends / Limit</span>
-              <span className="row-val">{jobDetails?.endTime || '-'} / {jobDetails?.timeLimit || selectedJob?.timeLimit}</span>
-            </div>
-            <div className="detail-row">
-              <span className="row-label"><Clock size={14}/> Elapsed</span>
-              <span className="row-val">{jobDetails?.runTime || selectedJob?.time}</span>
-            </div>
+          <div className="detail-section timeline-section">
+            <h4 className="section-label">Job Timeline</h4>
+            {renderTimeline()}
           </div>
 
           <div className="detail-section">
@@ -447,9 +557,9 @@ function App() {
               <span className="row-label"><Monitor size={14}/> Node List</span>
               <span className="row-val">{jobDetails?.nodeList || selectedJob?.nodeList || '-'}</span>
             </div>
-            <div className="detail-row">
+            <div className="detail-row" style={{ alignItems: 'flex-start' }}>
               <span className="row-label"><Zap size={14}/> Allocated</span>
-              <span className="row-val">{jobDetails?.allocTres ? jobDetails.allocTres.split(',').join(' • ') : (jobDetails?.numCPUs ? `${jobDetails.numCPUs} CPUs` : '-')}</span>
+              <div className="row-val-tags">{renderAllocatedTags()}</div>
             </div>
             <div className="detail-row">
               <span className="row-label"><Battery size={14}/> Min RAM</span>
