@@ -37,8 +37,9 @@ async function getJobDetails(jobId) {
       minMemoryNode: details['MinMemoryNode'],
       timeLimit: details['TimeLimit'],
       runTime: details['RunTime'],
-      stdOut: resolvePath(details['StdOut'], jobId, details['JobName']),
-      stdErr: resolvePath(details['StdErr'], jobId, details['JobName']),
+      workDir: details['WorkDir'],
+      stdOut: resolvePath(details['StdOut'], jobId, details['JobName'], details['WorkDir']),
+      stdErr: resolvePath(details['StdErr'], jobId, details['JobName'], details['WorkDir']),
       efficiency: efficiency
     };
   } catch (err) {
@@ -85,10 +86,15 @@ function parseSeffOutput(output) {
   return eff;
 }
 
-function resolvePath(filePath, jobId, jobName) {
+function resolvePath(filePath, jobId, jobName, workDir) {
   if (!filePath) return null;
-  // Slurm sometimes returns unresolved paths like /path/%j.out
-  return filePath.replace(/%j/g, jobId).replace(/%x/g, jobName || '');
+  // Slurm sometimes returns unresolved paths like /path/%j.out or relative paths
+  let resolved = filePath.replace(/%j/g, jobId).replace(/%x/g, jobName || '');
+  if (!resolved.startsWith('/') && workDir) {
+    const path = require('path');
+    resolved = path.join(workDir, resolved);
+  }
+  return resolved;
 }
 
 async function getJobLog(filePath, lines = 1000) {

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Settings, Server, LogOut, RotateCw, ChevronRight, ChevronLeft, Layers, Monitor, Clock, Battery, Cpu, FileText, DownloadCloud } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Settings, Server, LogOut, RotateCw, ChevronRight, ChevronLeft, Layers, Monitor, Clock, Battery, Cpu, FileText, DownloadCloud, User, HardDrive, CreditCard, Trash2, Moon, Sun } from 'lucide-react'
 import { io } from 'socket.io-client'
 import './App.css'
 
@@ -7,7 +7,7 @@ function App() {
   const [view, setView] = useState('connect') // 'connect', 'list', 'detail'
   const [selectedJob, setSelectedJob] = useState(null)
   const [activeTab, setActiveTab] = useState('out')
-  const [jobs, setJobs] = useState([])
+  const [jobs, setJobs] = useState([]) // persistent state
   const [socket, setSocket] = useState(null)
   const [status, setStatus] = useState('')
   const [username, setUsername] = useState('')
@@ -16,12 +16,25 @@ function App() {
   const [jobLogs, setJobLogs] = useState('')
   const [detailLoading, setDetailLoading] = useState(false)
   const [logLoading, setLogLoading] = useState(false)
+  
+  const [userStats, setUserStats] = useState({ balance: 'Loading...', storage: 'Loading...' })
+  
+  // Theme state
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light')
+  const [showSettings, setShowSettings] = useState(false)
+  const [switchUsername, setSwitchUsername] = useState('')
 
-  // Fetch job details when entering detail view
   useEffect(() => {
+    document.body.className = theme === 'dark' ? 'dark-mode' : ''
+    localStorage.setItem('theme', theme)
+  }, [theme])
+
+  // Fetch job details
+  const fetchJobDetails = () => {
     if (view === 'detail' && selectedJob) {
       setDetailLoading(true)
-      fetch(`api/jobs/${selectedJob.id}`)
+      const basePath = window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname + '/';
+      fetch(`${basePath}api/jobs/${selectedJob.id}`)
         .then(res => res.json())
         .then(data => {
           setJobDetails(data)
@@ -32,14 +45,19 @@ function App() {
           setDetailLoading(false)
         })
     }
+  }
+
+  useEffect(() => {
+    fetchJobDetails()
   }, [view, selectedJob])
 
-  // Fetch job logs when activeTab or selectedJob changes
-  useEffect(() => {
+  // Fetch job logs
+  const fetchJobLogs = () => {
     if (view === 'detail' && selectedJob) {
       setLogLoading(true)
       setJobLogs('')
-      fetch(`api/jobs/${selectedJob.id}/logs?type=${activeTab}`)
+      const basePath = window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname + '/';
+      fetch(`${basePath}api/jobs/${selectedJob.id}/logs?type=${activeTab}`)
         .then(res => res.json())
         .then(data => {
           setJobLogs(data.content)
@@ -51,6 +69,10 @@ function App() {
           setLogLoading(false)
         })
     }
+  }
+
+  useEffect(() => {
+    fetchJobLogs()
   }, [view, selectedJob, activeTab])
 
   useEffect(() => {
@@ -59,13 +81,36 @@ function App() {
     }
   }, [socket])
 
+  const fetchUserStats = (user) => {
+    const basePath = window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname + '/';
+    fetch(`${basePath}api/user-stats?user=${encodeURIComponent(user)}`)
+      .then(res => res.json())
+      .then(data => {
+        setUserStats({ balance: data.balance || 'N/A', storage: data.storage || 'N/A' })
+      })
+      .catch(() => {
+        setUserStats({ balance: 'Error', storage: 'Error' })
+      })
+  }
+
   const initSocket = (baseUri, user) => {
     setStatus('Connecting to WebSocket...')
     setUsername(user)
     
+    // reset jobs on user switch
+    setJobs([])
+    
+    // fetch stats once
+    fetchUserStats(user)
+    
+    if (socket) {
+      socket.disconnect()
+    }
+
     const newSocket = io(window.location.origin, {
       path: baseUri.replace(/\/$/, '') + '/socket.io',
-      withCredentials: true
+      withCredentials: true,
+      query: { user }
     })
 
     newSocket.on('connect', () => {
@@ -74,16 +119,34 @@ function App() {
     })
 
     newSocket.on('jobs_update', (jobsData) => {
-      const mappedJobs = jobsData.map(j => ({
-        ...j,
-        status: j.state,
-      }))
-      setJobs(mappedJobs)
+      setJobs(prevJobs => {
+        const newMap = new Map()
+        // keep old jobs
+        prevJobs.forEach(j => newMap.set(j.id, j))
+        // update with active jobs from squeue
+        jobsData.forEach(j => newMap.set(j.id, { ...j, status: j.state }))
+        return Array.from(newMap.values()).sort((a,b) => b.id.localeCompare(a.id))
+      })
       
       setSelectedJob(prev => {
         if (!prev) return null;
-        return mappedJobs.find(j => j.id === prev.id) || prev;
+        const mapped = jobsData.find(j => j.id === prev.id)
+        return mapped ? { ...mapped, status: mapped.state } : prev;
       });
+    })
+    
+    newSocket.on('job_finished', ({ jobId, job }) => {
+       setJobs(prevJobs => {
+         return prevJobs.map(j => {
+           if (j.id === jobId) return { ...j, status: job.state || 'COMPLETED' }
+           return j
+         })
+       })
+       
+       setSelectedJob(prev => {
+         if (prev && prev.id === jobId) return { ...prev, status: job.state || 'COMPLETED' }
+         return prev
+       })
     })
 
     newSocket.on('disconnect', () => {
@@ -93,10 +156,12 @@ function App() {
     setSocket(newSocket)
   }
 
-  const handleConnect = async () => {
+  const handleConnect = async (customUser = null) => {
     setStatus('Connecting...')
     try {
-      const basePath = window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname + '/'; const res = await fetch(basePath + 'api/config')
+      const basePath = window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname + '/'; 
+      const url = customUser ? `${basePath}api/config?user=${encodeURIComponent(customUser)}` : `${basePath}api/config`;
+      const res = await fetch(url)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
       if (data.baseUri) {
@@ -104,80 +169,143 @@ function App() {
       }
     } catch (err) {
       setStatus(`Connection failed: ${err.message}. Retrying...`)
-      setTimeout(() => handleConnect(), 3000)
+      setTimeout(() => handleConnect(customUser), 3000)
     }
   }
 
-  const renderConnect = () => (
-    <>
-      <div className="header">
-        <h1>SlurmWatch</h1>
-        <button className="icon-btn"><Settings size={20} /></button>
-      </div>
-      <div className="connect-screen">
-        <div className="connect-content">
-          <div className="connect-icon-wrapper">
-            <Server size={64} strokeWidth={1.5} />
-          </div>
-          <h2>SLURM Job Monitor</h2>
-          <p>Monitor your cluster jobs in real-time</p>
-        </div>
-        
-        <div className="connect-actions">
-          <button className="connect-btn btn-primary" onClick={handleConnect}>
-            Connect
-          </button>
-          {status && <div className="status-message">{status}</div>}
-        </div>
-        
-        <div className="footer-logo">
-          <img src="logo.png" alt="UM6P Toubkal Logo" />
-        </div>
-      </div>
-    </>
-  )
-
   const handleAppUpdate = async () => {
-    if (!window.confirm("Check for updates and restart the app?")) return;
     try {
-      setStatus('Checking for updates...');
-      const res = await fetch('api/update', { method: 'POST' });
-      const data = await res.json();
-      if (data.updated) {
-        alert("App updated successfully! It will restart now.");
-        window.location.reload();
-      } else if (data.error) {
-        alert("Failed to update: " + data.error);
-      } else {
-        alert("App is already up to date.");
-      }
-      setStatus('Connected');
+      const basePath = window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname + '/'; 
+      await fetch(basePath + 'api/update', { method: 'POST' });
+      alert("Update triggered! The server will restart shortly. Please refresh the page in a few moments.");
     } catch (err) {
-      alert("Error checking for updates: " + err.message);
-      setStatus('Connected');
+      alert("Update failed: " + err.message);
     }
-  };
+  }
+
+  const handleSwipeDelete = (jobId) => {
+    setJobs(prev => prev.filter(j => j.id !== jobId))
+  }
+
+  const JobCard = ({ job, onClick, onDelete }) => {
+    const [offsetX, setOffsetX] = useState(0)
+    const [isSwiping, setIsSwiping] = useState(false)
+    const startX = useRef(0)
+    const isFinished = !['RUNNING', 'PENDING'].includes(job.status)
+
+    const handleTouchStart = (e) => {
+      if (!isFinished) return
+      startX.current = e.touches[0].clientX
+      setIsSwiping(true)
+    }
+
+    const handleTouchMove = (e) => {
+      if (!isSwiping || !isFinished) return
+      const currentX = e.touches[0].clientX
+      const diff = currentX - startX.current
+      if (diff < 0) {
+        setOffsetX(diff)
+      }
+    }
+
+    const handleTouchEnd = () => {
+      if (!isSwiping || !isFinished) return
+      setIsSwiping(false)
+      if (offsetX < -100) {
+        onDelete(job.id)
+      } else {
+        setOffsetX(0)
+      }
+    }
+
+    return (
+      <div className="job-item-wrapper" style={{ position: 'relative', overflow: 'hidden' }}>
+        {isFinished && (
+          <div className="delete-bg" style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '100%', backgroundColor: '#ff3b30', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '20px', zIndex: 0, color: 'white', borderRadius: '12px', marginBottom: '12px' }}>
+            <Trash2 size={24} />
+          </div>
+        )}
+        <div 
+          className="job-item" 
+          onClick={onClick}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{
+            transform: `translateX(${offsetX}px)`,
+            transition: isSwiping ? 'none' : 'transform 0.3s ease',
+            position: 'relative',
+            zIndex: 1,
+            backgroundColor: 'var(--card-bg)'
+          }}
+        >
+          <div className={`status-dot status-${job.status?.toLowerCase() || 'pending'}`}></div>
+          <div className="job-details">
+            <div className="job-title">{job.name}</div>
+            <div className="job-meta">
+              <span className="meta-item">#{job.id}</span>
+              <span className="meta-item"><Clock size={12} /> {job.time}</span>
+              <span className="meta-item"><Layers size={12} /> {job.partition}</span>
+            </div>
+          </div>
+          <div className="job-status">
+            <span className="status-text">{job.status}</span>
+            <span className="status-partition">{job.partition}</span>
+          </div>
+          <ChevronRight size={16} className="chevron" />
+        </div>
+      </div>
+    )
+  }
+
+  const renderConnect = () => (
+    <div className="connect-screen">
+      <div className="logo-container">
+        <Server size={48} className="logo-icon" />
+        <h2>HPC Job Monitor</h2>
+        <p>Real-time Slurm tracking</p>
+      </div>
+      
+      <div className="connect-card">
+        <button className="connect-btn" onClick={() => handleConnect()}>Connect to Cluster</button>
+      </div>
+
+      <div className="status-text">{status}</div>
+      <img src="toubkal_logo_1786413269830.jpg" alt="UM6P" className="footer-logo" />
+    </div>
+  )
 
   const renderList = () => (
     <>
       <div className="header">
-        <div style={{display: 'flex', alignItems: 'center', gap: '16px'}}>
-          <button className="icon-btn" onClick={() => {
-            if (socket) socket.disconnect()
-            setSocket(null)
-            setView('connect')
-            setStatus('')
-          }}><LogOut size={20} /></button>
+        <div className="header-left">
+          <button className="icon-btn" onClick={() => setShowSettings(true)}><Settings size={20} /></button>
           <h1>SlurmWatch</h1>
         </div>
         <div className="header-right">
           <button className="icon-btn" onClick={handleAppUpdate} title="Check for Updates">
             <DownloadCloud size={20} />
           </button>
-          <button className="icon-btn"><RotateCw size={20} /></button>
         </div>
       </div>
+      
       <div className="list-screen">
+        <div className="dashboard-stats">
+          <div className="user-greeting">
+            <User size={16} /> {username}
+          </div>
+          <div className="stats-cards">
+            <div className="stat-card">
+              <div className="stat-title"><CreditCard size={14} /> Balance</div>
+              <div className="stat-value">{userStats.balance}</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-title"><HardDrive size={14} /> Storage</div>
+              <div className="stat-value">{userStats.storage}</div>
+            </div>
+          </div>
+        </div>
+
         {jobs.length === 0 ? (
           <div className="empty-jobs">
             <Layers size={48} className="empty-icon" />
@@ -186,28 +314,50 @@ function App() {
           </div>
         ) : (
           jobs.map(job => (
-            <div key={job.id} className="job-item" onClick={() => {
-              setSelectedJob(job)
-              setView('detail')
-            }}>
-              <div className={`status-dot status-${job.status?.toLowerCase() || 'pending'}`}></div>
-              <div className="job-details">
-                <div className="job-title">{job.name}</div>
-                <div className="job-meta">
-                  <span className="meta-item">#{job.id}</span>
-                  <span className="meta-item"><Clock size={12} /> {job.time}</span>
-                  <span className="meta-item"><Layers size={12} /> {job.partition}</span>
-                </div>
-              </div>
-              <div className="job-status">
-                <span className="status-text">{job.status}</span>
-                <span className="status-partition">{job.partition}</span>
-              </div>
-              <ChevronRight size={16} className="chevron" />
-            </div>
+            <JobCard 
+              key={job.id} 
+              job={job} 
+              onClick={() => {
+                setSelectedJob(job)
+                setView('detail')
+              }} 
+              onDelete={handleSwipeDelete}
+            />
           ))
         )}
       </div>
+
+      {showSettings && (
+        <div className="modal-overlay" onClick={() => setShowSettings(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <h3>Settings</h3>
+            <div className="settings-section">
+              <label>Theme</label>
+              <button className="theme-toggle-btn" onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')}>
+                {theme === 'light' ? <><Moon size={16}/> Dark Mode</> : <><Sun size={16}/> Light Mode</>}
+              </button>
+            </div>
+            <div className="settings-section">
+              <label>Switch User</label>
+              <div className="switch-user-input">
+                <input 
+                  type="text" 
+                  placeholder={username} 
+                  value={switchUsername}
+                  onChange={e => setSwitchUsername(e.target.value)}
+                />
+                <button onClick={() => {
+                  if (switchUsername.trim()) {
+                    handleConnect(switchUsername.trim())
+                    setShowSettings(false)
+                  }
+                }}>Switch</button>
+              </div>
+            </div>
+            <button className="close-modal-btn" onClick={() => setShowSettings(false)}>Close</button>
+          </div>
+        </div>
+      )}
     </>
   )
 
@@ -218,14 +368,16 @@ function App() {
           <ChevronLeft size={24} />
         </button>
         <div className="detail-title">{selectedJob?.name}</div>
-        <button className="back-btn"><RotateCw size={20} /></button>
+        <button className="back-btn" onClick={fetchJobDetails} disabled={detailLoading}>
+          <RotateCw size={20} className={detailLoading ? "spin" : ""} />
+        </button>
       </div>
       
       <div className="detail-screen">
         <div className="detail-info">
           <div className="info-top">
             <div className="info-status">
-              <div className="status-dot"></div>
+              <div className={`status-dot status-${selectedJob?.status?.toLowerCase() || 'pending'}`}></div>
               {selectedJob?.status}
             </div>
             <div>ID: {selectedJob?.id}</div>
@@ -275,38 +427,16 @@ function App() {
                 <div>Core-walltime: <span className="time-val">{jobDetails.efficiency.cpuCoreWalltime || '-'}</span></div>
               </div>
             </div>
-          ) : (
-            <div className="efficiency-section">
-              <div className="section-title">Requested Resources</div>
-              <div style={{color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '16px'}}>
-                Efficiency metrics (seff) are not available yet. Showing requested limits.
-              </div>
-              <div className="rings-container">
-                <div className="ring-wrapper">
-                  <div className="ring" style={{'--percentage': '100%', '--ring-color': '#34C759'}}>
-                    <div className="ring-inner">
-                      <Cpu size={14} />
-                      <span>{jobDetails?.numCPUs || '-'}</span>
-                    </div>
-                  </div>
-                  <div className="ring-label">Req. CPUs</div>
-                </div>
-                <div className="ring-wrapper">
-                  <div className="ring" style={{'--percentage': '100%', '--ring-color': '#007AFF'}}>
-                    <div className="ring-inner">
-                      <Battery size={14} />
-                      <span>{jobDetails?.minMemoryNode?.replace('G', ' GB') || '-'}</span>
-                    </div>
-                  </div>
-                  <div className="ring-label">Req. Memory</div>
-                </div>
-              </div>
-            </div>
-          )
+          ) : null
         )}
         
         <div className="tabs-section">
-          <div className="section-title">Select Log File</div>
+          <div className="section-title" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+            <span>Select Log File</span>
+            <button className="icon-btn" style={{padding: '4px', background: 'var(--bg-color)', borderRadius: '8px', border: '1px solid var(--border-color)', height: '28px', width: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center'}} onClick={fetchJobLogs} disabled={logLoading}>
+              <RotateCw size={14} className={logLoading ? "spin" : ""} style={{color: 'var(--text-secondary)'}} />
+            </button>
+          </div>
           <div className="tabs">
             <div className={`tab ${activeTab === 'out' ? 'active' : ''}`} onClick={() => setActiveTab('out')}>
               Standard Output (.out)

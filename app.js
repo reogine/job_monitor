@@ -34,11 +34,43 @@ router.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
 // API endpoint: return the base URI so the frontend can configure Socket.IO
 router.get('/api/config', (req, res) => {
-  const username = req.headers['x-forwarded-user'] 
+  const defaultUser = req.headers['x-forwarded-user'] 
     || process.env.REMOTE_USER 
     || process.env.USER 
     || 'unknown';
+  const username = req.query.user || defaultUser;
   res.json({ baseUri: BASE_URI, username });
+});
+
+// API endpoint: fetch user stats (balance, storage)
+router.get('/api/user-stats', async (req, res) => {
+  const username = req.query.user || req.headers['x-forwarded-user'] || process.env.REMOTE_USER || process.env.USER || 'unknown';
+  try {
+    const { exec } = require('child_process');
+    const util = require('util');
+    const execAsync = util.promisify(exec);
+    
+    let balance = 'N/A';
+    try {
+      const { stdout } = await execAsync(`mybalance`);
+      balance = stdout.trim();
+    } catch (e) {
+      console.error('mybalance error:', e.message);
+    }
+
+    let storage = 'N/A';
+    try {
+      // Assuming typical df output: Filesystem Size Used Avail Use% Mounted on
+      const { stdout } = await execAsync(`df -h ~ | awk 'NR==2 {print $3 " / " $2 " ("$5")"}'`);
+      storage = stdout.trim();
+    } catch (e) {
+      console.error('storage error:', e.message);
+    }
+    
+    res.json({ balance, storage });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // API endpoint: trigger auto update manually
@@ -97,8 +129,9 @@ app.use(BASE_URI, router);
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {
-  // Get username from the handshake headers (OOD sets these)
-  const username = socket.handshake.headers['x-forwarded-user']
+  // Get username from query or handshake headers
+  const username = socket.handshake.query.user
+    || socket.handshake.headers['x-forwarded-user']
     || process.env.REMOTE_USER
     || process.env.USER
     || 'unknown';

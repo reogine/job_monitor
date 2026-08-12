@@ -1,4 +1,6 @@
 const { exec } = require('child_process');
+const util = require('util');
+const execAsync = util.promisify(exec);
 
 // Active polling intervals: socketId -> intervalId
 const activePollers = new Map();
@@ -51,9 +53,18 @@ function pollOnce(username, socket) {
     // Detect finished/disappeared jobs
     for (const jobId in prevJobs) {
       if (!currentJobs[jobId]) {
-        socket.emit('job_finished', {
-          jobId: prevJobs[jobId].id,
-          job: prevJobs[jobId]
+        // Job dropped from squeue. Find out its real state using sacct
+        const prevJob = prevJobs[jobId];
+        exec(`sacct -j ${jobId} -o State -P -n | head -n 1`, (err, sacctOut) => {
+          let finalState = 'COMPLETED'; // default fallback
+          if (!err && sacctOut.trim()) {
+            finalState = sacctOut.trim();
+          }
+          prevJob.state = finalState;
+          socket.emit('job_finished', {
+            jobId: jobId,
+            job: prevJob
+          });
         });
       }
     }
