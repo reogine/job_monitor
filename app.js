@@ -72,14 +72,21 @@ router.get('/api/user-stats', async (req, res) => {
         const upper = line.toUpperCase();
         if (!upper.includes('CPU') && !upper.includes('GPU')) continue;
         
-        const parts = line.trim().split(/\s+/);
-        const lastCol = parts[parts.length - 1].replace(/,/g, '');
-        const val = parseInt(lastCol, 10);
+        // Remove commas and split by whitespace
+        const cleanLine = line.replace(/,/g, '');
+        const parts = cleanLine.trim().split(/\s+/);
         
-        if (!isNaN(val)) {
+        // Format: User [0] Usage [1] | [2] Account [3] Usage [4] | [5] Limit [6] Available [7]
+        // User wants: Account Limit - User Usage
+        const userUsage = parseInt(parts[1], 10);
+        const accountLimit = parseInt(parts[6], 10);
+        
+        if (!isNaN(userUsage) && !isNaN(accountLimit)) {
           parsedAny = true;
-          if (upper.includes('CPU')) cpuTotal += val;
-          if (upper.includes('GPU')) gpuTotal += val;
+          const trueAvailable = Math.max(0, accountLimit - userUsage);
+          
+          if (upper.includes('CPU')) cpuTotal += trueAvailable;
+          if (upper.includes('GPU')) gpuTotal += trueAvailable;
         }
       }
       
