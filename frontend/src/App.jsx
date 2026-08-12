@@ -309,7 +309,7 @@ function App() {
       <div className="list-screen">
         <div className="dashboard-stats">
           <div className="user-greeting">
-            <User size={24} /> Hello, {username}
+            <User size={24} /> {username}
           </div>
           <div className="stats-cards">
             <div className="stat-card balance-card">
