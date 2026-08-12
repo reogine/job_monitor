@@ -728,7 +728,11 @@ body.dark-mode .close-modal-btn:hover {
 .detail-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+  background: var(--card-bg);
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
 }
 
 .section-label {
@@ -736,19 +740,19 @@ body.dark-mode .close-modal-btn:hover {
   text-transform: uppercase;
   color: var(--text-secondary);
   letter-spacing: 1px;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
+  font-weight: 600;
 }
 
 .detail-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(0,0,0,0.03);
+  padding: 6px 0;
 }
 
-body.dark-mode .detail-row {
-  border-bottom: 1px solid rgba(255,255,255,0.03);
+body.dark-mode .detail-section {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
 .row-label {

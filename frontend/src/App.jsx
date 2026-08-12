@@ -296,10 +296,10 @@ function App() {
     <>
       <div className="header">
         <div className="header-left">
-          <button className="icon-btn" onClick={() => setShowSettings(true)}><Menu size={20} /></button>
           <h1>SlurmWatch</h1>
         </div>
         <div className="header-right">
+          <button className="icon-btn" onClick={() => setShowSettings(true)}><Menu size={20} /></button>
           <button className="icon-btn" onClick={handleAppUpdate} title="Check for Updates">
             <DownloadCloud size={20} />
           </button>
