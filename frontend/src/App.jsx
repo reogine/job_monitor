@@ -187,13 +187,11 @@ function App() {
   }
 
   const handleLogout = () => {
-    // Because Open OnDemand uses HttpOnly cookies, we cannot truly log out from Javascript.
-    // Instead, we use the backend's ability to fetch jobs for ANY user via the ?user= parameter.
-    const newUser = window.prompt("To monitor a different user without logging out, enter their cluster username:");
-    if (newUser && newUser.trim()) {
-      setShowSettings(false);
-      handleConnect(newUser.trim());
-    }
+    document.cookie.split(";").forEach(c => {
+      document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/");
+    });
+    localStorage.clear();
+    window.location.href = '/pun/sys/dashboard/logout';
   }
 
   const handleAppUpdate = async () => {
@@ -374,8 +372,8 @@ function App() {
             </div>
             <div className="settings-section">
               <label>Account</label>
-              <button className="theme-toggle-btn switch-btn" onClick={handleLogout}>
-                <User size={16} style={{marginRight: '8px'}} /> Monitor Another User
+              <button className="theme-toggle-btn logout-btn" onClick={handleLogout}>
+                <LogOut size={16} style={{marginRight: '8px'}} /> Sign Out / Switch User
               </button>
             </div>
             <button className="close-modal-btn" onClick={() => setShowSettings(false)}>Close</button>
