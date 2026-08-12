@@ -129,6 +129,10 @@ body {
   border: none;
   font-size: 17px;
   font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 12px;
   cursor: pointer;
   transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s ease, filter 0.2s ease;
