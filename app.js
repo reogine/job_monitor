@@ -60,8 +60,8 @@ router.get('/api/user-stats', async (req, res) => {
     
     let balance = 'N/A';
     try {
-      // Use bash -ic to force interactive mode which bypasses non-interactive .bashrc guards
-      const { stdout } = await execAsync(`bash -ic "export PATH=$PATH:/opt/slurm/bin:/usr/local/bin:/usr/bin:/bin \bash -ic "/srv/software/slurm-aux/bin/mybalance"\bash -ic "/srv/software/slurm-aux/bin/mybalance" /srv/software/slurm-aux/bin/mybalance"`, { timeout: 5000 });
+      // Inject SLURM paths and execute
+      const { stdout } = await execAsync(`export PATH=$PATH:/opt/slurm/bin:/usr/local/bin:/usr/bin:/bin && /srv/software/slurm-aux/bin/mybalance`, { timeout: 5000 });
       
       let cpuTotal = 0;
       let gpuTotal = 0;
