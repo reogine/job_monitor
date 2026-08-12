@@ -186,7 +186,14 @@ function App() {
     }
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      const basePath = window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname + '/';
+      await fetch(`${basePath}api/logout`, { method: 'POST' });
+    } catch (e) {
+      console.error('Logout API failed', e);
+    }
+    // Fallback manual clear for non-HttpOnly cookies just in case
     document.cookie.split(";").forEach(c => {
       document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/");
     });

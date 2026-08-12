@@ -128,6 +128,12 @@ router.get('/api/jobs/:id/logs', async (req, res) => {
   }
 });
 
+// API endpoint: securely clear all cookies (including HttpOnly) via browser header
+router.post('/api/logout', (req, res) => {
+  res.setHeader('Clear-Site-Data', '"cookies", "storage"');
+  res.json({ success: true });
+});
+
 // SPA fallback — serve index.html directly since the build is single-file
 router.use((req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
