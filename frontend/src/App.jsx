@@ -262,7 +262,7 @@ function App() {
     <>
       <div className="header">
         <h1>SlurmWatch</h1>
-        <button className="icon-btn" onClick={() => setShowSettings(true)}><Settings size={20} /></button>
+        <button className="icon-btn" onClick={() => setShowSettings(true)}><Menu size={20} /></button>
       </div>
       <div className="connect-screen">
         <div className="connect-content">
