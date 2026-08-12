@@ -21,7 +21,7 @@ function App() {
   useEffect(() => {
     if (view === 'detail' && selectedJob) {
       setDetailLoading(true)
-      fetch(`/api/jobs/${selectedJob.id}`)
+      fetch(`api/jobs/${selectedJob.id}`)
         .then(res => res.json())
         .then(data => {
           setJobDetails(data)
@@ -39,7 +39,7 @@ function App() {
     if (view === 'detail' && selectedJob) {
       setLogLoading(true)
       setJobLogs('')
-      fetch(`/api/jobs/${selectedJob.id}/logs?type=${activeTab}`)
+      fetch(`api/jobs/${selectedJob.id}/logs?type=${activeTab}`)
         .then(res => res.json())
         .then(data => {
           setJobLogs(data.content)
