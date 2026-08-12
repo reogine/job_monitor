@@ -61,13 +61,40 @@ router.get('/api/user-stats', async (req, res) => {
     let balance = 'N/A';
     try {
       // Use bash -ic to force interactive mode which loads aliases from bashrc
-      const { stdout } = await execAsync(`bash -ic "mybalance"`, { timeout: 3000 });
-      balance = stdout.trim();
-      if (!balance) balance = "Empty Output";
+      // Use the absolute path provided by the user
+      const { stdout } = await execAsync(`/srv/software/slurm-aux/bin/mybalance`, { timeout: 5000 });
+      
+      let cpuTotal = 0;
+      let gpuTotal = 0;
+      let parsedAny = false;
+      
+      const lines = stdout.trim().split('\n');
+      for (const line of lines) {
+        const upper = line.toUpperCase();
+        if (!upper.includes('CPU') && !upper.includes('GPU')) continue;
+        
+        const parts = line.trim().split(/\s+/);
+        const lastCol = parts[parts.length - 1].replace(/,/g, '');
+        const val = parseInt(lastCol, 10);
+        
+        if (!isNaN(val)) {
+          parsedAny = true;
+          if (upper.includes('CPU')) cpuTotal += val;
+          if (upper.includes('GPU')) gpuTotal += val;
+        }
+      }
+      
+      if (parsedAny) {
+        balance = `CPU: ${cpuTotal.toLocaleString()}h | GPU: ${gpuTotal.toLocaleString()}h`;
+      } else if (stdout.trim()) {
+        balance = "Unknown format";
+      } else {
+        balance = "Empty Output";
+      }
     } catch (e) {
       console.error('mybalance error:', e.message);
       // Show the actual stderr in the UI so we can debug it!
-      const errStr = (e.stderr || e.message).replace('Command failed: bash -ic "mybalance"', '').trim();
+      const errStr = (e.stderr || e.message).replace('Command failed: /srv/software/slurm-aux/bin/mybalance', '').trim();
       balance = "Err: " + errStr.substring(0, 40);
     }
 
