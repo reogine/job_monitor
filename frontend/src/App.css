@@ -842,10 +842,10 @@ body.dark-mode .detail-section {
 
 .timeline-track {
   position: absolute;
-  top: 6px;
-  left: 6px;
+  top: 9px;
+  left: 8px;
   width: 2px;
-  height: calc(100% - 24px);
+  height: calc(100% - 18px);
   background: var(--border-color);
   z-index: 0;
 }
@@ -870,6 +870,7 @@ body.dark-mode .detail-section {
   flex-direction: column;
   gap: 24px;
   z-index: 1;
+  position: relative;
 }
 
 .timeline-node {

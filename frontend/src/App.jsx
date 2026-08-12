@@ -435,11 +435,11 @@ function App() {
     
     return (
       <div className="timeline-container">
-        <div className="timeline-track">
-          <div className={`timeline-progress ${isRunning ? 'active' : ''} ${isFailed ? 'failed' : ''}`} style={{width: `${progress}%`}}></div>
-        </div>
-        
         <div className="timeline-nodes">
+          <div className="timeline-track">
+            <div className={`timeline-progress ${isRunning ? 'active' : ''} ${isFailed ? 'failed' : ''}`} style={{height: `${progress}%`}}></div>
+          </div>
+          
           <div className="timeline-node active">
             <div className="node-dot"></div>
             <div className="node-label">Submitted</div>
