@@ -60,7 +60,8 @@ router.get('/api/user-stats', async (req, res) => {
     
     let balance = 'N/A';
     try {
-      const { stdout } = await execAsync(`mybalance`);
+      // Use bash -l to load the profile (in case mybalance is an alias or needs a module)
+      const { stdout } = await execAsync(`bash -l -c "mybalance"`);
       balance = stdout.trim();
     } catch (e) {
       console.error('mybalance error:', e.message);
