@@ -60,8 +60,8 @@ router.get('/api/user-stats', async (req, res) => {
     
     let balance = 'N/A';
     try {
-      // Inject SLURM paths and execute
-      const { stdout } = await execAsync(`export PATH=$PATH:/opt/slurm/bin:/usr/local/bin:/usr/bin:/bin && /srv/software/slurm-aux/bin/mybalance`, { timeout: 5000 });
+      // Use a login shell so the cluster's /etc/profile runs and loads modules/paths (like sbank)
+      const { stdout } = await execAsync(`bash -l -c "/srv/software/slurm-aux/bin/mybalance"`, { timeout: 5000 });
       
       let cpuTotal = 0;
       let gpuTotal = 0;
