@@ -154,11 +154,11 @@ function App() {
     setSocket(newSocket)
   }
 
-  const handleConnect = async () => {
+  const handleConnect = async (overrideUser = null) => {
     setStatus('Connecting...')
     try {
       const basePath = window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname + '/'; 
-      const url = `${basePath}api/config`;
+      const url = overrideUser ? `${basePath}api/config?user=${encodeURIComponent(overrideUser)}` : `${basePath}api/config`;
       const res = await fetch(url)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
@@ -167,7 +167,8 @@ function App() {
         
         setStatus('Fetching account balance...')
         try {
-          const statsRes = await fetch(`${basePath}api/user-stats`)
+          const statsUrl = overrideUser ? `${basePath}api/user-stats?user=${encodeURIComponent(overrideUser)}` : `${basePath}api/user-stats`;
+          const statsRes = await fetch(statsUrl)
           if (statsRes.ok) {
             const statsData = await statsRes.json()
             setUserStats(statsData)
@@ -185,14 +186,13 @@ function App() {
   }
 
   const handleLogout = () => {
-    document.cookie.split(";").forEach(c => {
-      document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/");
-    });
-    localStorage.clear();
-    window.location.href = '/pun/sys/dashboard/logout';
-    setTimeout(() => {
-      window.location.href = '/';
-    }, 500);
+    // Because Open OnDemand uses HttpOnly cookies, we cannot truly log out from Javascript.
+    // Instead, we use the backend's ability to fetch jobs for ANY user via the ?user= parameter.
+    const newUser = window.prompt("To monitor a different user without logging out, enter their cluster username:");
+    if (newUser && newUser.trim()) {
+      setShowSettings(false);
+      handleConnect(newUser.trim());
+    }
   }
 
   const handleAppUpdate = async () => {
@@ -373,8 +373,8 @@ function App() {
             </div>
             <div className="settings-section">
               <label>Account</label>
-              <button className="theme-toggle-btn logout-btn" onClick={handleLogout}>
-                <LogOut size={16} style={{marginRight: '8px'}} /> Sign Out / Switch User
+              <button className="theme-toggle-btn switch-btn" onClick={handleLogout}>
+                <User size={16} style={{marginRight: '8px'}} /> Monitor Another User
               </button>
             </div>
             <button className="close-modal-btn" onClick={() => setShowSettings(false)}>Close</button>

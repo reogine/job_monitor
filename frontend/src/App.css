@@ -694,14 +694,14 @@ body {
 .theme-toggle-btn:active {
   transform: scale(0.97);
 }
-.logout-btn {
-  background: #FF3B30;
+.switch-btn {
+  background: var(--primary);
   color: white;
   border: none;
   font-weight: 600;
 }
-.logout-btn:hover {
-  background: #e6352b;
+.switch-btn:hover {
+  background: #b5381f;
 }
 .close-modal-btn {
   width: 100%;
