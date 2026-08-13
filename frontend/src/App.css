@@ -1025,11 +1025,17 @@ body.dark-mode .detail-section {
 /* ==========================================================================
    Responsive Design for Mobile Phones
    ========================================================================== */
-@media (max-width: 600px) {
+@media (max-width: 800px) {
   /* Dashboard Stats */
-  .stats-cards {
+  .unified-stats-row {
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
+  }
+  
+  .unified-stat-divider {
+    width: 100%;
+    height: 1px;
+    margin: 8px 0;
   }
   
   .stat-card {
