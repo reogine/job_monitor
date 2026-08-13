@@ -336,11 +336,11 @@ function App() {
                 <div className="balance-grid">
                   <div className="balance-item">
                     <Cpu size={14} style={{color: 'var(--primary)'}} />
-                    <span>CPU: {userStats.balance.cpu?.toLocaleString()} hrs</span>
+                    <span>CPU: {userStats.balance.cpu?.toLocaleString()} SUs</span>
                   </div>
                   <div className="balance-item">
                     <CircuitBoard size={14} style={{color: '#34C759'}} />
-                    <span>GPU: {userStats.balance.gpu?.toLocaleString()} hrs</span>
+                    <span>GPU: {userStats.balance.gpu?.toLocaleString()} SUs</span>
                   </div>
                 </div>
               ) : (
