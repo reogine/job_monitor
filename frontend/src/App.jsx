@@ -253,7 +253,11 @@ function App() {
             <div className="job-title">{job.name}</div>
             <div className="job-meta">
               <span className="meta-item">#{job.id}</span>
-              <span className="meta-item"><Clock size={12} /> {job.time}</span>
+              {job.status === 'PENDING' && job.startTime && job.startTime !== 'N/A' && job.startTime !== 'None' ? (
+                <span className="meta-item"><Clock size={12} /> Starts: {job.startTime.replace('T', ' ').replace(/:\d\d$/, '')}</span>
+              ) : (
+                <span className="meta-item"><Clock size={12} /> {job.time}</span>
+              )}
               <span className="meta-item"><Layers size={12} /> {job.partition}</span>
             </div>
           </div>
@@ -436,7 +440,11 @@ function App() {
     const isFailed = !isRunning && !isCompleted && !isPending;
     
     const submitted = jobDetails?.submitTime ? jobDetails.submitTime.replace('T', ' ') : '-';
-    const started = jobDetails?.startTime && jobDetails.startTime !== 'Unknown' ? jobDetails.startTime.replace('T', ' ') : '-';
+    const started = jobDetails?.startTime && jobDetails.startTime !== 'Unknown' 
+      ? jobDetails.startTime.replace('T', ' ') 
+      : (selectedJob?.startTime && selectedJob.startTime !== 'N/A' && selectedJob.startTime !== 'None'
+          ? selectedJob.startTime.replace('T', ' ')
+          : '-');
     let ended = jobDetails?.endTime && jobDetails.endTime !== 'Unknown' ? jobDetails.endTime.replace('T', ' ') : '-';
     if (ended === '-') ended = jobDetails?.timeLimit || selectedJob?.timeLimit || '-';
     

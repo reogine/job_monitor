@@ -18,15 +18,15 @@ function parseSqueueOutput(output) {
     const line = lines[i].trim();
     if (!line) continue;
 
-    const [id, name, user, state, time, timeLimit, partition, nodeList] = line.split('|');
-    jobs[id] = { id, name, user, state, time, timeLimit, partition, nodeList };
+    const [id, name, user, state, time, timeLimit, partition, nodeList, startTime] = line.split('|');
+    jobs[id] = { id, name, user, state, time, timeLimit, partition, nodeList, startTime };
   }
 
   return jobs;
 }
 
 function pollOnce(username, socket) {
-  const cmd = `squeue -u ${username} -o "%i|%j|%u|%T|%M|%l|%P|%R"`;
+  const cmd = `squeue -u ${username} -o "%i|%j|%u|%T|%M|%l|%P|%R|%S"`;
 
   exec(cmd, (error, stdout, stderr) => {
     if (error) {
