@@ -528,10 +528,10 @@ body {
 
 /* Dashboard stats */
 .dashboard-stats {
-  padding: 16px;
+  padding: 0;
   background: transparent;
   border-bottom: none;
-  margin-bottom: 0;
+  margin-bottom: 16px;
 }
 .unified-dashboard-card {
   display: flex;
