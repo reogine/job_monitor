@@ -294,70 +294,71 @@ function App() {
 
   const renderList = () => (
     <>
-      <div className="header">
-        <div className="header-left">
-          <h1>SlurmWatch</h1>
+      <div className="top-bar-container">
+        <div className="header">
+          <div className="header-left">
+            <h1>HPCWATCH</h1>
+          </div>
+          <div className="header-right">
+            <button className="icon-btn" onClick={() => setShowSettings(true)}><Menu size={20} /></button>
+            <button className="icon-btn" onClick={handleAppUpdate} title="Check for Updates">
+              <DownloadCloud size={20} />
+            </button>
+          </div>
         </div>
-        <div className="header-right">
-          <button className="icon-btn" onClick={() => setShowSettings(true)}><Menu size={20} /></button>
-          <button className="icon-btn" onClick={handleAppUpdate} title="Check for Updates">
-            <DownloadCloud size={20} />
-          </button>
+        
+        <div className="top-bar-user-stats">
+          <div className="top-bar-profile">
+            <User size={32} className="top-bar-user-icon" />
+            <span className="top-bar-username">{username}</span>
+          </div>
+          
+          <div className="unified-stats-row">
+            <div className="unified-stat-section balance-section">
+              <div className="stat-title"><CreditCard size={14} /> Balance</div>
+              {typeof userStats.balance === 'object' && !userStats.balance.error ? (
+                <div className="balance-grid">
+                  <div className="balance-item">
+                    <Cpu size={14} style={{color: 'var(--primary)'}} />
+                    <span>CPU: {userStats.balance.cpu?.toLocaleString()} hrs</span>
+                  </div>
+                  <div className="balance-item">
+                    <CircuitBoard size={14} style={{color: '#34C759'}} />
+                    <span>GPU: {userStats.balance.gpu?.toLocaleString()} hrs</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="stat-value">{userStats.balance?.error || userStats.balance}</div>
+              )}
+            </div>
+            
+            <div className="unified-stat-divider"></div>
+            
+            <div className="unified-stat-section storage-section">
+              <div className="stat-title"><HardDrive size={14} /> Storage</div>
+              {(() => {
+                const storageObj = parseStorage(userStats.storage);
+                let color = '#34C759'; // green
+                if (storageObj.percent > 80) color = '#FF9500'; // orange
+                if (storageObj.percent > 90) color = '#FF3B30'; // red
+                
+                return (
+                  <div className="storage-container">
+                    <div className="stat-value">{storageObj.text}</div>
+                    {storageObj.percent > 0 && (
+                      <div className="storage-progress-bg">
+                        <div className="storage-progress-fill" style={{ width: `${storageObj.percent}%`, backgroundColor: color }}></div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
         </div>
       </div>
       
       <div className="list-screen">
-        <div className="dashboard-stats">
-          <div className="stat-card unified-dashboard-card">
-            <div className="unified-card-header">
-              <User size={18} className="unified-user-icon" />
-              <span className="unified-username">{username}</span>
-            </div>
-            <div className="unified-stats-row">
-              <div className="unified-stat-section balance-section">
-                <div className="stat-title"><CreditCard size={14} /> Balance</div>
-                {typeof userStats.balance === 'object' && !userStats.balance.error ? (
-                  <div className="balance-grid">
-                    <div className="balance-item">
-                      <Cpu size={14} style={{color: 'var(--primary)'}} />
-                      <span>CPU: {userStats.balance.cpu?.toLocaleString()} hrs</span>
-                    </div>
-                    <div className="balance-item">
-                      <CircuitBoard size={14} style={{color: '#34C759'}} />
-                      <span>GPU: {userStats.balance.gpu?.toLocaleString()} hrs</span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="stat-value">{userStats.balance?.error || userStats.balance}</div>
-                )}
-              </div>
-              
-              <div className="unified-stat-divider"></div>
-              
-              <div className="unified-stat-section storage-section">
-                <div className="stat-title"><HardDrive size={14} /> Storage</div>
-                {(() => {
-                  const storageObj = parseStorage(userStats.storage);
-                  let color = '#34C759'; // green
-                  if (storageObj.percent > 80) color = '#FF9500'; // orange
-                  if (storageObj.percent > 90) color = '#FF3B30'; // red
-                  
-                  return (
-                    <div className="storage-container">
-                      <div className="stat-value">{storageObj.text}</div>
-                      {storageObj.percent > 0 && (
-                        <div className="storage-progress-bg">
-                          <div className="storage-progress-fill" style={{ width: `${storageObj.percent}%`, backgroundColor: color }}></div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-          </div>
-        </div>
-
         {jobs.length === 0 ? (
           <div className="empty-jobs">
             <Layers size={48} className="empty-icon" />
