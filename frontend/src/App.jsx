@@ -544,6 +544,7 @@ function App() {
           } else if (key === 'mem') {
             icon = <Microchip size={12} />;
             className = 'tag-mem';
+            displayName = `${val} RAM`;
             displayKey = '';
           } else if (key.includes('gpu')) {
             icon = <CircuitBoard size={12} />;
@@ -613,10 +614,6 @@ function App() {
             <div className="detail-row" style={{ alignItems: 'flex-start' }}>
               <span className="row-label"><Zap size={14}/> Allocated</span>
               <div className="row-val-tags">{renderAllocatedTags()}</div>
-            </div>
-            <div className="detail-row">
-              <span className="row-label"><Battery size={14}/> Min RAM</span>
-              <span className="row-val">{jobDetails?.minMemoryNode || '-'}</span>
             </div>
           </div>
 
