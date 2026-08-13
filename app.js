@@ -80,16 +80,23 @@ router.get('/api/user-stats', async (req, res) => {
         const available = parseInt(parts[7], 10);
         const accountLimit = parseInt(parts[6], 10);
         const accountUsage = parseInt(parts[4], 10);
+        const userUsage = parseInt(parts[1], 10);
         
-        let trueAvailable = 0;
+        let baseAvailable = 0;
         if (!isNaN(available)) {
-          trueAvailable = available;
+          baseAvailable = available;
           parsedAny = true;
         } else if (!isNaN(accountLimit) && !isNaN(accountUsage)) {
-          trueAvailable = Math.max(0, accountLimit - accountUsage);
+          baseAvailable = Math.max(0, accountLimit - accountUsage);
           parsedAny = true;
         } else {
           continue;
+        }
+        
+        // As requested by user, subtract User Usage from the Available amount
+        let trueAvailable = baseAvailable;
+        if (!isNaN(userUsage)) {
+          trueAvailable = Math.max(0, baseAvailable - userUsage);
         }
         
         if (upper.includes('CPU')) cpuTotal += trueAvailable;
