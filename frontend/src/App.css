@@ -1025,8 +1025,8 @@ body.dark-mode .detail-section {
   background: #34c7591a;
 }
 .tag-billing {
-  color: #007aff;
-  background: #007aff1a;
+  color: #ffcc00;
+  background: rgba(255, 204, 0, 0.15);
 }
 
 .tag-neutral {

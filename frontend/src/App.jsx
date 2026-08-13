@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Menu, Server, LogOut, RotateCw, ChevronRight, ChevronLeft, Layers, Monitor, Clock, Battery, Cpu, DownloadCloud, User, HardDrive, CreditCard, Trash2, Moon, Sun, CircuitBoard, Calendar, Zap, Terminal } from 'lucide-react'
+import { Menu, Server, LogOut, RotateCw, ChevronRight, ChevronLeft, Layers, Monitor, Clock, Battery, Cpu, DownloadCloud, User, HardDrive, CreditCard, Trash2, Moon, Sun, CircuitBoard, Calendar, Zap, Terminal, Coins } from 'lucide-react'
 import { io } from 'socket.io-client'
 import './App.css'
 
@@ -556,7 +556,7 @@ function App() {
             displayName = `${val} Node${val > 1 ? 's' : ''}`;
             displayKey = '';
           } else if (key === 'billing') {
-            icon = <CreditCard size={12} />;
+            icon = <Coins size={12} />;
             className = 'tag-billing';
             displayKey = 'Billing: ';
           } else {
