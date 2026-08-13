@@ -236,6 +236,7 @@ function App() {
     const [isSwiping, setIsSwiping] = useState(false)
     const startX = useRef(0)
     const isFinished = !['RUNNING', 'PENDING'].includes(job.status)
+    const displayStatus = job.status?.startsWith('CANCELLED') ? 'CANCELLED' : job.status;
 
     const handleTouchStart = (e) => {
       if (!isFinished) return
@@ -297,8 +298,7 @@ function App() {
             </div>
           </div>
           <div className="job-status">
-            <span className="status-text">{job.status}</span>
-            <span className="status-partition">{job.partition}</span>
+            <span className="status-text">{displayStatus}</span>
           </div>
           <ChevronRight size={16} className="chevron" />
         </div>
