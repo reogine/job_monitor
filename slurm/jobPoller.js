@@ -80,8 +80,40 @@ function pollOnce(username, socket) {
   });
 }
 
+function fetchRecentHistory(username, socket) {
+  if (!/^[a-zA-Z0-9_-]+$/.test(username)) return;
+  
+  // Fetch jobs from the last 7 days that are no longer in squeue
+  const cmd = `sacct -u ${username} -S now-7days -X -P -n --format="JobID,JobName,User,State,Elapsed,Timelimit,Partition,NodeList,Start"`;
+  
+  exec(cmd, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`sacct error for ${username}:`, error.message);
+      return;
+    }
+    
+    const lines = stdout.trim().split('\n');
+    const historyJobs = [];
+    
+    lines.forEach(line => {
+      const parts = line.trim().split('|');
+      if (parts.length < 9) return;
+      
+      const [id, name, user, state, time, timeLimit, partition, nodeList, startTime] = parts;
+      historyJobs.push({ id, name, user, state, time, timeLimit, partition, nodeList, startTime });
+    });
+    
+    if (historyJobs.length > 0) {
+      socket.emit('jobs_history', historyJobs);
+    }
+  });
+}
+
 function startPolling(username, socket) {
   console.log(`Starting poller for ${username} (socket: ${socket.id})`);
+
+  // Fetch recent history to catch jobs that finished while app was closed
+  fetchRecentHistory(username, socket);
 
   // Immediate first poll
   pollOnce(username, socket);

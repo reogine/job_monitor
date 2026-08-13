@@ -141,6 +141,29 @@ function App() {
        })
     })
 
+    newSocket.on('jobs_history', (historyData) => {
+      setJobs(prevJobs => {
+        const newMap = new Map()
+        // keep old jobs
+        prevJobs.forEach(j => newMap.set(j.id, j))
+        
+        // merge history
+        historyData.forEach(j => {
+          if (!newMap.has(j.id)) {
+            newMap.set(j.id, { ...j, status: j.state })
+          } else {
+             // If we already have it, but history shows it finished, update it
+             const existing = newMap.get(j.id)
+             if ((existing.status === 'RUNNING' || existing.status === 'PENDING') && 
+                 (j.state !== 'RUNNING' && j.state !== 'PENDING')) {
+                newMap.set(j.id, { ...existing, ...j, status: j.state })
+             }
+          }
+        })
+        return Array.from(newMap.values()).sort((a,b) => b.id.localeCompare(a.id))
+      })
+    })
+
     newSocket.on('disconnect', () => {
       setStatus('Disconnected')
     })
