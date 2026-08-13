@@ -4,6 +4,9 @@ const util = require('util');
 const execAsync = util.promisify(exec);
 
 async function getJobDetails(jobId) {
+  if (!/^\d+$/.test(jobId)) {
+    throw new Error("Invalid Job ID format. Must be numeric.");
+  }
   try {
     // 1. Get raw job details from scontrol
     const { stdout: scontrolOut } = await execAsync(`scontrol show job ${jobId}`);

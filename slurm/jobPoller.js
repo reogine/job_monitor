@@ -26,6 +26,11 @@ function parseSqueueOutput(output) {
 }
 
 function pollOnce(username, socket) {
+  if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+    console.error(`Invalid username format: ${username}`);
+    return;
+  }
+  
   const cmd = `squeue -u ${username} -o "%i|%j|%u|%T|%M|%l|%P|%R|%S"`;
 
   exec(cmd, (error, stdout, stderr) => {
