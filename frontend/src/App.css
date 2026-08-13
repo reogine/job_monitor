@@ -1028,14 +1028,14 @@ body.dark-mode .detail-section {
 @media (max-width: 800px) {
   /* Dashboard Stats */
   .unified-stats-row {
-    flex-direction: column;
-    gap: 12px;
+    flex-direction: column !important;
+    gap: 12px !important;
   }
   
   .unified-stat-divider {
-    width: 100%;
-    height: 1px;
-    margin: 8px 0;
+    width: 100% !important;
+    height: 1px !important;
+    margin: 8px 0 !important;
   }
   
   .stat-card {
