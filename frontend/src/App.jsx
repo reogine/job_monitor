@@ -544,8 +544,8 @@ function App() {
           } else if (key === 'mem') {
             icon = <Microchip size={12} />;
             className = 'tag-mem';
-            displayName = `${val} RAM`;
-            displayKey = '';
+            displayName = val;
+            displayKey = 'RAM: ';
           } else if (key.includes('gpu')) {
             icon = <CircuitBoard size={12} />;
             className = 'tag-gpu';
