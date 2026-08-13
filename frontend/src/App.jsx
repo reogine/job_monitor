@@ -6,7 +6,14 @@ import './App.css'
 function App() {
   const [view, setView] = useState('connect') // 'connect', 'list', 'detail'
   const [selectedJob, setSelectedJob] = useState(null)
-  const [jobs, setJobs] = useState([]) // persistent state
+  const [jobs, setJobs] = useState(() => {
+    try {
+      const saved = localStorage.getItem('hpc_saved_jobs');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  }); // persistent state
   const [socket, setSocket] = useState(null)
   const [status, setStatus] = useState('')
   const [username, setUsername] = useState('')
@@ -55,6 +62,11 @@ function App() {
   useEffect(() => {
     fetchJobDetails()
   }, [view, selectedJob])
+
+  // Save jobs to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('hpc_saved_jobs', JSON.stringify(jobs));
+  }, [jobs]);
 
   useEffect(() => {
     return () => {
