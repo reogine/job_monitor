@@ -555,6 +555,10 @@ function App() {
             className = 'tag-node';
             displayName = `${val} Node${val > 1 ? 's' : ''}`;
             displayKey = '';
+          } else if (key === 'billing') {
+            icon = <CreditCard size={12} />;
+            className = 'tag-billing';
+            displayKey = 'Billing: ';
           } else {
             displayKey = key + ': ';
           }
