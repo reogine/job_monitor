@@ -26,7 +26,7 @@ function parseSqueueOutput(output) {
 }
 
 function pollOnce(username, socket) {
-  if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+  if (!/^[a-zA-Z0-9_\-\.\@]+$/.test(username)) {
     console.error(`Invalid username format: ${username}`);
     return;
   }
@@ -81,7 +81,7 @@ function pollOnce(username, socket) {
 }
 
 function fetchRecentHistory(username, socket) {
-  if (!/^[a-zA-Z0-9_-]+$/.test(username)) return;
+  if (!/^[a-zA-Z0-9_\-\.\@]+$/.test(username)) return;
   
   // Fetch jobs from the last 7 days that are no longer in squeue
   const cmd = `sacct -u ${username} -S now-7days -X -P -n --format="JobID,JobName,User,State,Elapsed,Timelimit,Partition,NodeList,Start"`;
