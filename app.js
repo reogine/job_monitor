@@ -77,17 +77,23 @@ router.get('/api/user-stats', async (req, res) => {
         const parts = cleanLine.trim().split(/\s+/);
         
         // Format: User [0] Usage [1] | [2] Account [3] Usage [4] | [5] Limit [6] Available [7]
-        // User wants: Account Limit - User Usage
-        const userUsage = parseInt(parts[1], 10);
+        const available = parseInt(parts[7], 10);
         const accountLimit = parseInt(parts[6], 10);
+        const accountUsage = parseInt(parts[4], 10);
         
-        if (!isNaN(userUsage) && !isNaN(accountLimit)) {
+        let trueAvailable = 0;
+        if (!isNaN(available)) {
+          trueAvailable = available;
           parsedAny = true;
-          const trueAvailable = Math.max(0, accountLimit - userUsage);
-          
-          if (upper.includes('CPU')) cpuTotal += trueAvailable;
-          if (upper.includes('GPU')) gpuTotal += trueAvailable;
+        } else if (!isNaN(accountLimit) && !isNaN(accountUsage)) {
+          trueAvailable = Math.max(0, accountLimit - accountUsage);
+          parsedAny = true;
+        } else {
+          continue;
         }
+        
+        if (upper.includes('CPU')) cpuTotal += trueAvailable;
+        if (upper.includes('GPU')) gpuTotal += trueAvailable;
       }
       
       if (parsedAny) {
