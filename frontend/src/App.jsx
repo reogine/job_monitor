@@ -308,7 +308,7 @@ function App() {
   const renderConnect = () => (
     <>
       <div className="header">
-        <h1>SlurmWatch</h1>
+        <h1>JobTracker</h1>
         <button className="icon-btn" onClick={() => setShowSettings(true)}><Menu size={20} /></button>
       </div>
       <div className="connect-screen">
@@ -316,7 +316,7 @@ function App() {
           <div className="connect-icon-wrapper">
             <Server size={64} strokeWidth={1.5} />
           </div>
-          <h2>SLURM Job Monitor</h2>
+          <h2>JobTracker</h2>
           <p>Monitor your cluster jobs in real-time</p>
         </div>
         
@@ -335,7 +335,7 @@ function App() {
       <div className="top-bar-container">
         <div className="header">
           <div className="header-left">
-            <h1>HPCWATCH</h1>
+            <h1>JobTracker</h1>
           </div>
           <div className="header-right">
             <button className="icon-btn" onClick={() => setShowSettings(true)}><Menu size={20} /></button>

@@ -1,5 +1,5 @@
 ---
-name: HPC Job Monitor
+name: JobTracker
 category: Monitoring
 subcategory: Jobs
 description: Real-time Slurm job monitoring with notifications

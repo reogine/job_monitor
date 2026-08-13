@@ -1,6 +1,6 @@
 {
-  "name": "HPCWATCH",
-  "short_name": "HPCWATCH",
+  "name": "JobTracker",
+  "short_name": "JobTracker",
   "description": "Real-time Slurm job monitoring for Open OnDemand",
   "display": "standalone",
   "background_color": "#000000",
