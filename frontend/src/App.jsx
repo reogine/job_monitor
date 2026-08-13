@@ -294,7 +294,6 @@ function App() {
               ) : (
                 <span className="meta-item"><Clock size={12} /> {job.time}</span>
               )}
-              <span className="meta-item"><Layers size={12} /> {job.partition}</span>
             </div>
           </div>
           <div className="job-status">
@@ -614,7 +613,7 @@ function App() {
           <div className="info-top-modern">
             <div className={`status-badge status-text-${selectedJob?.status?.toLowerCase() || 'pending'}`}>
               <div className={`status-dot status-${selectedJob?.status?.toLowerCase() || 'pending'}`}></div>
-              {selectedJob?.status}
+              {selectedJob?.status?.startsWith('CANCELLED') ? 'CANCELLED' : selectedJob?.status}
             </div>
             <div className="job-id-badge">#{selectedJob?.id}</div>
           </div>
