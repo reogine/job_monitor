@@ -54,7 +54,8 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 24px 24px 16px 24px;
-  background-color: transparent;
+  background-color: #000000;
+  color: #ffffff;
   margin-top: 0;
 }
 
