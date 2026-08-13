@@ -265,7 +265,7 @@ function App() {
     return (
       <div className="job-item-wrapper" style={{ position: 'relative', overflow: 'hidden' }}>
         {isFinished && (
-          <div className="delete-bg" style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '100%', backgroundColor: '#ff3b30', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '20px', zIndex: 0, color: 'white', borderRadius: '12px', marginBottom: '12px' }}>
+          <div className="delete-bg" style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: '12px', backgroundColor: '#ff3b30', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '20px', zIndex: 0, color: 'white', borderRadius: '16px' }}>
             <Trash2 size={24} />
           </div>
         )}
