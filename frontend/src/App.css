@@ -372,6 +372,8 @@ body {
 .chevron {
   color: #C7C7CC;
   margin-left: 12px;
+  flex-shrink: 0;
+  min-width: 16px;
 }
 
 /* Screen 3: Details */
